@@ -28,7 +28,7 @@ public:
         }
     }
     
-    void draw_lines(std::vector<int>& heights);
+    void draw_lines(std::vector<float>& height_factors);
 
 private:
     void clear();

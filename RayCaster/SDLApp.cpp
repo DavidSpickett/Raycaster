@@ -32,17 +32,23 @@ SDLApp::SDLApp(int width, int height):
     m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 }
 
-void SDLApp::draw_lines(std::vector<int>& heights)
+void SDLApp::draw_lines(std::vector<float>& height_factors)
 {
     clear();
     auto midscreen = m_height/2;
     SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
     
-    for (auto x=0; x != heights.size(); ++x)
+    for (auto x=0; x != height_factors.size(); ++x)
     {
-        SDL_RenderDrawLine(m_renderer,
-            x, midscreen-(heights[x]/2),
-            x, midscreen+(heights[x]/2));
+        // Divide by 2 because we draw above and below the middle
+        int line_height = (m_height*height_factors[x])/2;
+        
+        if (line_height)
+        {
+            SDL_RenderDrawLine(m_renderer,
+                               x, midscreen-line_height,
+                               x, midscreen+line_height);
+        }
     }
 
     SDL_RenderPresent(m_renderer);
