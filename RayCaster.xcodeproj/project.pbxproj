@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		2F0A36A71EB8E3D200C9DE2F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F0A36A61EB8E3D200C9DE2F /* main.cpp */; };
+		2F0A36AF1EB8E55E00C9DE2F /* SDLApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F0A36AD1EB8E55E00C9DE2F /* SDLApp.cpp */; };
+		2F0A36B21EB8E7EF00C9DE2F /* Level.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F0A36B01EB8E7EF00C9DE2F /* Level.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +27,10 @@
 /* Begin PBXFileReference section */
 		2F0A36A31EB8E3D200C9DE2F /* RayCaster */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = RayCaster; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F0A36A61EB8E3D200C9DE2F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		2F0A36AD1EB8E55E00C9DE2F /* SDLApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SDLApp.cpp; sourceTree = "<group>"; };
+		2F0A36AE1EB8E55E00C9DE2F /* SDLApp.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SDLApp.hpp; sourceTree = "<group>"; };
+		2F0A36B01EB8E7EF00C9DE2F /* Level.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Level.cpp; sourceTree = "<group>"; };
+		2F0A36B11EB8E7EF00C9DE2F /* Level.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Level.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +63,11 @@
 		2F0A36A51EB8E3D200C9DE2F /* RayCaster */ = {
 			isa = PBXGroup;
 			children = (
+				2F0A36B01EB8E7EF00C9DE2F /* Level.cpp */,
+				2F0A36B11EB8E7EF00C9DE2F /* Level.hpp */,
 				2F0A36A61EB8E3D200C9DE2F /* main.cpp */,
+				2F0A36AD1EB8E55E00C9DE2F /* SDLApp.cpp */,
+				2F0A36AE1EB8E55E00C9DE2F /* SDLApp.hpp */,
 			);
 			path = RayCaster;
 			sourceTree = "<group>";
@@ -119,7 +129,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2F0A36B21EB8E7EF00C9DE2F /* Level.cpp in Sources */,
 				2F0A36A71EB8E3D200C9DE2F /* main.cpp in Sources */,
+				2F0A36AF1EB8E55E00C9DE2F /* SDLApp.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
