@@ -4,7 +4,8 @@
 
 const auto win_height = 480;
 const auto win_width  = 640;
-const auto tick_interval = 30;
+const auto tick_interval = 120;
+const auto turn_amount = 1;
 
 int main(int argc, char* argv[])
 {
@@ -33,25 +34,16 @@ int main(int argc, char* argv[])
                 }
                 else if (state[SDL_SCANCODE_LEFT])
                 {
-                    if (level.m_player_pos.angle == 0)
+                    level.m_player_pos.angle -= turn_amount;
+                    if (level.m_player_pos.angle < 0)
                     {
-                        level.m_player_pos.angle = 270;
-                    }
-                    else
-                    {
-                        level.m_player_pos.angle -= 90;
+                        level.m_player_pos.angle += 360;
                     }
                 }
                 else if (state[SDL_SCANCODE_RIGHT])
                 {
-                    if (level.m_player_pos.angle == 270)
-                    {
-                        level.m_player_pos.angle = 0;
-                    }
-                    else
-                    {
-                        level.m_player_pos.angle += 90;
-                    }
+                    level.m_player_pos.angle += turn_amount;
+                    level.m_player_pos.angle %= 360;
                 }
             }
         }
@@ -64,6 +56,8 @@ int main(int argc, char* argv[])
             SDL_Delay(next_frame-now);
         }
         next_frame += tick_interval;
+        
+        printf("Angle: %d\n", level.m_player_pos.angle);
     }
     
     return 0;
