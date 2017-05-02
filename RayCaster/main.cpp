@@ -4,6 +4,7 @@
 
 const auto win_height = 480;
 const auto win_width  = 640;
+const auto tick_interval = 30;
 
 int main(int argc, char* argv[])
 {
@@ -14,6 +15,8 @@ int main(int argc, char* argv[])
     auto run = true;
     while(run)
     {
+        auto next_frame = SDL_GetTicks() + tick_interval;
+        
         SDL_PollEvent(&event);
         switch (event.type)
         {
@@ -28,10 +31,40 @@ int main(int argc, char* argv[])
                     run = false;
                     break;
                 }
+                else if (state[SDL_SCANCODE_LEFT])
+                {
+                    if (level.m_player_pos.angle == 0)
+                    {
+                        level.m_player_pos.angle = 270;
+                    }
+                    else
+                    {
+                        level.m_player_pos.angle -= 90;
+                    }
+                }
+                else if (state[SDL_SCANCODE_RIGHT])
+                {
+                    if (level.m_player_pos.angle == 270)
+                    {
+                        level.m_player_pos.angle = 0;
+                    }
+                    else
+                    {
+                        level.m_player_pos.angle += 90;
+                    }
+                }
             }
         }
         auto lines = level.get_line_heights(win_width);
         app.draw_lines(lines);
+        
+        auto now = SDL_GetTicks();
+        if (now < next_frame)
+        {
+            SDL_Delay(next_frame-now);
+        }
+        next_frame += tick_interval;
+        printf("Angle: %d\n", level.m_player_pos.angle);
     }
     
     return 0;

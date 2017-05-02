@@ -37,13 +37,14 @@ public:
                 0,1,0,0,0,0,
                 0,0,0,0,0,0},
         m_tile_side(500),
-        m_player_pos(2000, 1500, 0)
+        m_player_pos(2000, 1500, 270)
     {
         m_map_width = MAP_SIDE*m_tile_side;
         m_map_height = MAP_SIDE*m_tile_side;
     }
     
     std::vector<float> get_line_heights(int view_width);
+    Position m_player_pos;
     
 private:
     bool in_map(int x, int y);
@@ -56,7 +57,6 @@ private:
     
     std::array<int, MAP_SIDE*MAP_SIDE> m_tiles;
     int m_tile_side;
-    Position m_player_pos;
 };
 
 #endif /* Level_hpp */

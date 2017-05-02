@@ -68,9 +68,26 @@ float Level::get_line_height_factor(int x, int view_width)
     view and see what we collide with.*/
     Position pos(m_player_pos.x, m_player_pos.y, m_player_pos.angle);
     
-    //TODO: this transition when the angle isn't 0
-    //This puts the new position somewhere along the imaginary flat camera plane.
-    pos.x = pos.x - 320 + x;
+    //Remember that 'X' here is just the slice of the screen, not a directional thing.
+    //When we rotate the camera, the camera's x=0 stays the same.
+    auto half_screen = view_width/2;
+    switch (m_player_pos.angle)
+    {
+        case 0:
+            pos.x = pos.x - half_screen + x;
+            break;
+        case 90:
+            pos.y = pos.y + half_screen - x;
+            break;
+        case 180:
+            pos.x = pos.x + half_screen - x;
+            break;
+        case 270:
+            pos.y = pos.y - half_screen + x;
+            break;
+        default:
+            throw std::runtime_error("??");
+    }
     
     auto distance = 0;
     const auto distance_step = 100;
