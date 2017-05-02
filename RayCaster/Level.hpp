@@ -46,6 +46,9 @@ public:
     std::vector<float> get_line_heights(int view_width);
     Position m_player_pos;
     
+    void player_forward(int amount);
+    void player_backward(int amount);
+    
 private:
     bool in_map(Position);
     bool in_wall(Position);

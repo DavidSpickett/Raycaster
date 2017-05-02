@@ -5,7 +5,8 @@
 const auto win_height = 480;
 const auto win_width  = 640;
 const auto tick_interval = 120;
-const auto turn_amount = 1;
+const auto turn_amount = 90;
+const auto move_amount = 10;
 
 int main(int argc, char* argv[])
 {
@@ -44,6 +45,14 @@ int main(int argc, char* argv[])
                 {
                     level.m_player_pos.angle += turn_amount;
                     level.m_player_pos.angle %= 360;
+                }
+                else if (state[SDL_SCANCODE_UP])
+                {
+                    level.player_forward(move_amount);
+                }
+                else if (state[SDL_SCANCODE_DOWN])
+                {
+                    level.player_backward(move_amount);
                 }
             }
         }

@@ -36,41 +36,8 @@ namespace
                 return Position(pos.x-distance, pos.y, pos.angle);
             default:
             {
-                auto x=0, y=0;
-                auto angle = pos.angle;
-                
-                if (angle < 90)
-                {
-                    y = cos(angle) * distance;
-                    x = sqrt(pow(distance, 2) - pow(y, 2));
-                }
-                else if ((angle > 90) && (angle < 180))
-                {
-                    angle -= 90;
-                    x = cos(angle) * distance;
-                    y = sqrt(pow(distance, 2) - pow(x, 2));
-                    
-                    y *= -1;
-                }
-                else if ((angle > 180) && (angle < 270))
-                {
-                    angle -= 180;
-                    y = cos(angle) * distance;
-                    x = sqrt(pow(distance, 2) - pow(y, 2));
-                    
-                    x *= -1;
-                    y *= -1;
-                }
-                else if (angle > 270)
-                {
-                    angle -= 270;
-                    x = cos(angle) * distance;
-                    y = sqrt(pow(distance, 2) - pow(x, 2));
-                    
-                    x*= -1;
-                }
-                
-                return Position(pos.x+x, pos.y+y, pos.angle);
+                //Work out current magnitude of vector.
+                throw std::runtime_error("impliment me!");
             }
         }
     }
@@ -100,6 +67,16 @@ namespace
     }
 }
 
+void Level::player_forward(int amount)
+{
+    m_player_pos = add_to_pos(m_player_pos, amount);
+}
+
+void Level::player_backward(int amount)
+{
+    m_player_pos = add_to_pos(m_player_pos, -amount);
+}
+
 float Level::get_line_height_factor(int x, int view_width)
 {
     /*In steps of 100 pixels take a line out from this X point on the player's
@@ -112,7 +89,7 @@ float Level::get_line_height_factor(int x, int view_width)
     pos = translate_ray_pos(pos, x, view_width);
     
     auto distance = 0;
-    const auto distance_step = 100;
+    const auto distance_step = 50;
     auto am_in_wall = false;
     
     while (in_map(pos))
