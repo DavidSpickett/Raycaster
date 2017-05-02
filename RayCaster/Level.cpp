@@ -93,9 +93,9 @@ float Level::get_line_height_factor(int x, int view_width)
     const auto distance_step = 100;
     auto am_in_wall = false;
     
-    while (in_map(pos.x, pos.x))
+    while (in_map(pos))
     {
-        if (in_wall(pos.x, pos.y))
+        if (in_wall(pos))
         {
             am_in_wall = true;
             break;
@@ -114,18 +114,18 @@ float Level::get_line_height_factor(int x, int view_width)
     return 0;
 }
 
-bool Level::in_map(int x, int y)
+bool Level::in_map(Position pos)
 {
-    return (x >= 0) && (y >= 0) && (x < m_map_width) && (y < m_map_height);
+    return (pos.x >= 0) && (pos.y >= 0) && (pos.x < m_map_width) && (pos.y < m_map_height);
 }
 
-bool Level::in_wall(int x, int y)
+bool Level::in_wall(Position pos)
 {
-    x /= m_tile_side;
-    y /= m_tile_side;
+    pos.x /= m_tile_side;
+    pos.y /= m_tile_side;
     
     //Our map data is laid out to look like a normal map but our y co-ord is inverted.
-    y = MAP_SIDE - y;
+    pos.y = MAP_SIDE - pos.y - 1;
     
-    return m_tiles[x+(y*MAP_SIDE)] == 1;
+    return m_tiles[pos.x+(pos.y*MAP_SIDE)] == 1;
 }

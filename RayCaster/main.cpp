@@ -64,7 +64,6 @@ int main(int argc, char* argv[])
             SDL_Delay(next_frame-now);
         }
         next_frame += tick_interval;
-        printf("Angle: %d\n", level.m_player_pos.angle);
     }
     
     return 0;

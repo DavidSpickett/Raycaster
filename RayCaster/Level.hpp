@@ -37,7 +37,7 @@ public:
                 0,1,0,0,0,0,
                 0,0,0,0,0,0},
         m_tile_side(500),
-        m_player_pos(2000, 1500, 270)
+        m_player_pos(2000, 1500, 180)
     {
         m_map_width = MAP_SIDE*m_tile_side;
         m_map_height = MAP_SIDE*m_tile_side;
@@ -47,8 +47,8 @@ public:
     Position m_player_pos;
     
 private:
-    bool in_map(int x, int y);
-    bool in_wall(int x, int y);
+    bool in_map(Position);
+    bool in_wall(Position);
     
     int m_map_width;
     int m_map_height;
