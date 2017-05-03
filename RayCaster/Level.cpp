@@ -9,6 +9,81 @@
 #include "Level.hpp"
 #include <math.h>
 
+Position add_to_pos(const Position& pos, unsigned distance)
+{
+    auto ret(pos);
+    
+    //We could generalise this since cos(0)=1 etc...
+    if (pos.angle == 0)
+    {
+        ret.y += distance;
+    }
+    else if (pos.angle == 90)
+    {
+        ret.x += distance;
+    }
+    else if (pos.angle == 180)
+    {
+        ret.y -= distance;
+    }
+    else if (pos.angle == 270)
+    {
+        ret.x -= distance;
+    }
+    else
+    {
+        //Convert distance and angle into cartesian X and Y to change the position
+        
+        //Translate everything so it's using the y axis north as it's 'x' side.
+        auto calc_angle = pos.angle;
+        
+        if ((calc_angle > 90) && (calc_angle < 180))
+        {
+            calc_angle -= 90;
+        }
+        else if ((calc_angle > 180) && (calc_angle < 270))
+        {
+            calc_angle -= 180;
+        }
+        else if ((calc_angle > 270) && (calc_angle < 360))
+        {
+            calc_angle -= 270;
+        }
+        
+        //Convert to RADIANS!
+        calc_angle *= 0.0174533;
+        
+        auto x = cos(calc_angle)*distance;
+        auto y = sin(calc_angle)*distance;
+        
+        if ((x < 0) || (y < 0))
+        {
+            throw std::runtime_error("Ooops");
+        }
+        
+        if ((pos.angle > 90) && (pos.angle < 180))
+        {
+            std::swap(x, y);
+            y *= -1;
+        }
+        else if ((pos.angle > 180) && (pos.angle < 270))
+        {
+            y *= -1;
+            x *= -1;
+        }
+        else if ((pos.angle > 270) && (pos.angle < 360))
+        {
+            std::swap(x, y);
+            x *= -1;
+        }
+        
+        ret.x += x;
+        ret.y += y;
+    }
+    
+    return ret;
+}
+
 std::vector<float> Level::get_line_heights(int view_width)
 {
     //View width is the screenwidth.
@@ -20,53 +95,6 @@ std::vector<float> Level::get_line_heights(int view_width)
     return ret;
 }
 
-namespace
-{
-    Position add_to_pos(const Position& pos, double distance)
-    {
-        switch (pos.angle)
-        {
-            case 0:
-                return Position(pos.x, pos.y+distance, pos.angle);
-            case 90:
-                return Position(pos.x+distance, pos.y, pos.angle);
-            case 180:
-                return Position(pos.x, pos.y-distance, pos.angle);
-            case 270:
-                return Position(pos.x-distance, pos.y, pos.angle);
-            default:
-            {
-                //Work out current magnitude of vector.
-                throw std::runtime_error("impliment me!");
-            }
-        }
-    }
-    
-    Position translate_ray_pos(Position original, int x, int screen_width)
-    {
-        auto half_screen = screen_width/2;
-        
-        /*Make a new vector orthogonal to the original by 90
-         degrees clockwise.*/
-        original.angle += 90;
-        original.angle %= 360;
-        
-        //We are modifying distance now, not x or y
-        //always add the same amount as we go in the same dir
-        auto translate_distance = - half_screen + x;
-        original = add_to_pos(original, translate_distance);
-        
-        //Now move it back to the direction of the camera
-        original.angle -= 90;
-        if (original.angle < 0)
-        {
-            original.angle += 360;
-        }
-        
-        return original;
-    }
-}
-
 void Level::player_forward(int amount)
 {
     m_player_pos = add_to_pos(m_player_pos, amount);
@@ -74,22 +102,34 @@ void Level::player_forward(int amount)
 
 void Level::player_backward(int amount)
 {
+    //TODO: make this invert the angle by 180 degress then move it back.
+    //Need an angle type really, to take care of all these -= 360s everywhere.
     m_player_pos = add_to_pos(m_player_pos, -amount);
 }
 
 float Level::get_line_height_factor(int x, int view_width)
 {
-    /*In steps of 100 pixels take a line out from this X point on the player's
+    /*In steps of some number of pixels take a line out from this X point on the player's
     view and see what we collide with.*/
-    Position pos(m_player_pos.x, m_player_pos.y, m_player_pos.angle);
+    Position pos(m_player_pos);
     
-    //Remember that 'X' here is just the slice of the screen, not a directional thing.
-    //When we rotate the camera, the camera's x=0 stays the same.
-
-    pos = translate_ray_pos(pos, x, view_width);
+    //Each ray comes from the player at a slightly different angle according to the FOV.
+    double fov = 60;
+    double angle = - (fov/2) + ((fov/view_width)*x);
+    
+    pos.angle += angle;
+    
+    if (pos.angle > 360)
+    {
+        pos.angle -= 360;
+    }
+    else if (pos.angle < 0)
+    {
+        pos.angle += 360;
+    }
     
     auto distance = 0;
-    const auto distance_step = 50;
+    const auto distance_step = 100;
     auto am_in_wall = false;
     
     while (in_map(pos))

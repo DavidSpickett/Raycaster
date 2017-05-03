@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <vector>
+#include "Level.hpp"
 
 const auto SCREEN_FPS = 60;
 const auto SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
@@ -32,6 +33,8 @@ public:
     }
     
     void draw_lines(std::vector<float>& height_factors);
+    void draw_2d_map(const Level& level);
+    void draw_to_screen();
 
 private:
     void clear();

@@ -17,18 +17,23 @@ const auto MAP_SIDE = 6;
 
 struct Position
 {
-    Position(int x, int y, int angle):
+    Position(int x, int y, double angle):
         x(x), y(y), angle(angle)
+    {}
+    
+    Position(const Position& other):
+        x(other.x), y(other.y), angle(other.angle)
     {}
     
     int x;
     int y;
-    int angle; //0 means facing North/forward
+    double angle; //0 means facing North/forward
 };
 
-class Level
+Position add_to_pos(const Position& pos, unsigned distance);
+
+struct Level
 {
-public:
     Level():
         m_tiles{0,0,0,0,0,0,
                 0,1,1,1,0,0,
@@ -49,7 +54,6 @@ public:
     void player_forward(int amount);
     void player_backward(int amount);
     
-private:
     bool in_map(Position);
     bool in_wall(Position);
     
