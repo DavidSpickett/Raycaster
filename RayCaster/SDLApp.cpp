@@ -129,13 +129,17 @@ void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)
 void SDLApp::draw_lines(std::vector<float> height_factors)
 {
     clear();
+    SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
     
     auto midscreen = m_height/2;
-    SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
     for (auto x=0; x != height_factors.size(); ++x)
     {
         // Divide by 2 because we draw above and below the middle
         int line_height = (m_height*height_factors[x])/2;
+        
+        // Fade out with distance
+        auto alpha = (255*height_factors[x]) + 10;
+        SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, alpha);
         
         if (line_height)
         {
