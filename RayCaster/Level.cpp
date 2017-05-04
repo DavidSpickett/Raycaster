@@ -9,7 +9,7 @@
 #include "Level.hpp"
 #include <math.h>
 
-Position Position::operator+(int distance)
+Position Position::operator+(int distance) const
 {
     auto ret(*this);
     

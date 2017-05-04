@@ -23,13 +23,13 @@ public:
         m_value(value)
     {}
     
-    LimitedAngle operator+(double value)
+    LimitedAngle operator+(double value) const 
     {
         auto res = value + m_value;
         return LimitedAngle(limit_value(res));
     }
     
-    LimitedAngle operator-(double value)
+    LimitedAngle operator-(double value) const
     {
         auto res = m_value + value;
         return LimitedAngle(limit_value(res));
@@ -68,7 +68,7 @@ public:
     double GetValue() const { return m_value; }
     
 private:
-    double limit_value(double value)
+    double limit_value(double value) const
     {
         while (value >= 360)
         {
@@ -94,6 +94,8 @@ struct Position
         x(other.x), y(other.y), angle(other.angle)
     {}
     
+    Position operator+(int distance) const;
+    
     Position& operator+=(int distance)
     {
         auto new_pos = *this + distance;
@@ -114,9 +116,6 @@ struct Position
     int x;
     int y;
     LimitedAngle angle; //0 means facing North/forward
-    
-private:
-    Position operator+(int distance);
 };
 
 struct Level

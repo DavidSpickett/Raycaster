@@ -78,8 +78,10 @@ void SDLApp::draw_minimap(const Level& level)
     
     SDL_RenderDrawRect(m_renderer, &outline);
     
+    draw_vision_cone(level, level.m_player_fov);
+    
     //Player position
-    SDL_SetRenderDrawColor(m_renderer, 0, 255, 0, 255);
+    SDL_SetRenderDrawColor(m_renderer, 255, 0, 255, 255);
     SDL_Point player_pos = level.m_player_pos.to_minimap_point(level.m_map_height, level.m_tile_side, m_minimap_cell_size);
     
     SDL_Rect player;
@@ -88,15 +90,15 @@ void SDLApp::draw_minimap(const Level& level)
     player.w = 2;
     player.h = 2;
     SDL_RenderDrawRect(m_renderer, &player);
-    
-    draw_vision_cone(level, level.m_player_fov);
 }
 
 void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)
 {
     const auto vision_length = 500; //In full size map pixels
+    
     SDL_Point points[4];
     
+    //Cone itself
     Position left_extent(level.m_player_pos);
     left_extent.angle -= level.m_player_fov.GetValue()/2;
     left_extent += vision_length;
@@ -110,7 +112,18 @@ void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)
     points[2] = right_extent.to_minimap_point(level.m_map_height, level.m_tile_side, m_minimap_cell_size);
     points[3] = points[0];
     
+    SDL_SetRenderDrawColor(m_renderer, 0, 255, 0, 255);
     SDL_RenderDrawLines(m_renderer, points, 4);
+    
+    //Then a shorter line to show the heading
+    const auto heading_length = 300;
+    SDL_Point start_heading = level.m_player_pos.to_minimap_point(level.m_map_height, level.m_tile_side, m_minimap_cell_size);
+    SDL_Point end_heading = (level.m_player_pos+heading_length).to_minimap_point(level.m_map_height, level.m_tile_side, m_minimap_cell_size);
+    
+    SDL_SetRenderDrawColor(m_renderer, 255, 0, 255, 255);
+    SDL_RenderDrawLine(m_renderer,
+        start_heading.x, start_heading.y,
+        end_heading.x, end_heading.y);
 }
 
 void SDLApp::draw_lines(std::vector<float> height_factors)
