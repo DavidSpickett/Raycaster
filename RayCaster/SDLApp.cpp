@@ -138,7 +138,7 @@ void SDLApp::draw_lines(std::vector<float> height_factors)
         int line_height = (m_height*height_factors[x])/2;
         
         // Fade out with distance
-        auto alpha = (255*height_factors[x]) + 10;
+        auto alpha = std::max(float(10), 255*height_factors[x]);
         SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, alpha);
         
         if (line_height)

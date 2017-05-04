@@ -95,10 +95,28 @@ struct Position
     {}
     
     Position operator+(int distance) const;
+    Position operator-(int distance) const
+    {
+        Position ret(*this);
+        ret.angle -= 180;
+        ret += distance;
+        ret.angle += 180;
+        return ret;
+    }
     
+    //These can probably be simplified.
     Position& operator+=(int distance)
     {
         auto new_pos = *this + distance;
+        x = new_pos.x;
+        y = new_pos.y;
+        angle = new_pos.angle;
+        return *this;
+    }
+    
+    Position& operator-=(int distance)
+    {
+        auto new_pos = *this - distance;
         x = new_pos.x;
         y = new_pos.y;
         angle = new_pos.angle;
