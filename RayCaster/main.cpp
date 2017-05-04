@@ -7,6 +7,7 @@ const auto win_width  = 640;
 const auto tick_interval = 60;
 const auto turn_amount = 10;
 const auto move_amount = 10;
+const auto fov_change_amount = 10;
 
 int main(int argc, char* argv[])
 {
@@ -18,47 +19,59 @@ int main(int argc, char* argv[])
     while(run)
     {
         auto next_frame = SDL_GetTicks() + tick_interval;
+        auto *state = SDL_GetKeyboardState(NULL);
         
-        SDL_PollEvent(&event);
-        switch (event.type)
+        while (SDL_PollEvent(&event))
         {
-            case SDL_QUIT:
-                run = false;
-                break;
-            case SDL_KEYDOWN:
+            switch (event.type)
             {
-                auto *state = SDL_GetKeyboardState(NULL);
-                if (state[SDL_SCANCODE_ESCAPE])
-                {
+                case SDL_QUIT:
                     run = false;
                     break;
-                }
-                else if (state[SDL_SCANCODE_LEFT])
+                case SDL_KEYDOWN:
                 {
-                    level.m_player_pos.angle -= turn_amount;
-                    if (level.m_player_pos.angle < 0)
+                    if (state[SDL_SCANCODE_ESCAPE])
                     {
-                        level.m_player_pos.angle += 360;
+                        run = false;
+                        break;
                     }
-                }
-                else if (state[SDL_SCANCODE_RIGHT])
-                {
-                    level.m_player_pos.angle += turn_amount;
-                    if (level.m_player_pos.angle > 360)
+                    else if (state[SDL_SCANCODE_LEFTBRACKET])
                     {
-                        level.m_player_pos.angle -= 360;
+                        level.m_player_fov += fov_change_amount;
                     }
-                }
-                else if (state[SDL_SCANCODE_UP])
-                {
-                    level.player_forward(move_amount);
-                }
-                else if (state[SDL_SCANCODE_DOWN])
-                {
-                    level.player_backward(move_amount);
+                    else if (state[SDL_SCANCODE_RIGHTBRACKET])
+                    {
+                        level.m_player_fov -= fov_change_amount;
+                    }
                 }
             }
         }
+        
+        if (state[SDL_SCANCODE_LEFT])
+        {
+            level.m_player_pos.angle -= turn_amount;
+            if (level.m_player_pos.angle < 0)
+            {
+                level.m_player_pos.angle += 360;
+            }
+        }
+        else if (state[SDL_SCANCODE_RIGHT])
+        {
+            level.m_player_pos.angle += turn_amount;
+            if (level.m_player_pos.angle > 360)
+            {
+                level.m_player_pos.angle -= 360;
+            }
+        }
+        else if (state[SDL_SCANCODE_UP])
+        {
+            level.player_forward(move_amount);
+        }
+        else if (state[SDL_SCANCODE_DOWN])
+        {
+            level.player_backward(move_amount);
+        }
+
         auto lines = level.get_line_heights(win_width);
         app.draw_lines(lines);
         app.draw_2d_map(level);

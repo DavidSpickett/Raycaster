@@ -108,7 +108,7 @@ struct Level
                 0,0,0,0,0,0,
                 0,1,0,0,0,0,
                 0,0,0,0,0,0,
-                0,1,0,0,0,0},
+                0,1,0,0,0,1},
         m_tile_side(500),
         m_player_pos(2000, 1500, 0),
         m_player_fov(60)
@@ -128,7 +128,7 @@ struct Level
     
     int m_map_width;
     int m_map_height;
-    double m_player_fov;
+    LimitedAngle m_player_fov;
     
     float get_line_height_factor(int x, int view_width);
     

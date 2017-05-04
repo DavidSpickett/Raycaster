@@ -107,7 +107,7 @@ float Level::get_line_height_factor(int x, int view_width)
     Position pos(m_player_pos);
     
     //Each ray comes from the player at a slightly different angle according to the FOV.
-    double angle = - (m_player_fov/2) + ((m_player_fov/view_width)*x);
+    double angle = - (m_player_fov.GetValue()/2) + ((m_player_fov.GetValue()/view_width)*x);
     
     pos.angle += angle;
     

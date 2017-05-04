@@ -99,14 +99,14 @@ void SDLApp::draw_2d_map(const Level& level)
     
     //Left hand extend
     Position left_extent(level.m_player_pos);
-    left_extent.angle -= level.m_player_fov/2;
+    left_extent.angle -= level.m_player_fov.GetValue()/2;
     left_extent = add_to_pos(left_extent, vision_length);
     
     points[1].x = to_minimap_coord(left_extent.x, level, cell_size);
     points[1].y = to_minimap_coord(level.m_map_height-left_extent.y, level, cell_size);
     
     Position right_extent(level.m_player_pos);
-    right_extent.angle += level.m_player_fov/2;
+    right_extent.angle += level.m_player_fov.GetValue()/2;
     right_extent = add_to_pos(right_extent, vision_length);
     
     points[2].x = to_minimap_coord(right_extent.x, level, cell_size);
