@@ -53,13 +53,8 @@ Position add_to_pos(const Position& pos, unsigned distance)
         //Convert to RADIANS!
         calc_angle *= 0.0174533;
         
-        auto x = cos(calc_angle)*distance;
-        auto y = sin(calc_angle)*distance;
-        
-        if ((x < 0) || (y < 0))
-        {
-            throw std::runtime_error("Ooops");
-        }
+        auto y = cos(calc_angle)*distance;
+        auto x = sin(calc_angle)*distance;
         
         if ((pos.angle > 90) && (pos.angle < 180))
         {
