@@ -50,11 +50,9 @@ Position add_to_pos(const Position& pos, unsigned distance)
             calc_angle -= 270;
         }
         
-        //Convert to RADIANS!
-        calc_angle *= 0.0174533;
-        
-        auto y = cos(calc_angle)*distance;
-        auto x = sin(calc_angle)*distance;
+        auto triangle_angle = (calc_angle.GetValue()/180) * M_PI;
+        auto y = cos(triangle_angle)*distance;
+        auto x = sin(triangle_angle)*distance;
         
         if ((pos.angle > 90) && (pos.angle < 180))
         {
@@ -97,9 +95,9 @@ void Level::player_forward(int amount)
 
 void Level::player_backward(int amount)
 {
-    //TODO: make this invert the angle by 180 degress then move it back.
-    //Need an angle type really, to take care of all these -= 360s everywhere.
-    m_player_pos = add_to_pos(m_player_pos, -amount);
+    m_player_pos.angle -= 180;
+    m_player_pos = add_to_pos(m_player_pos, amount);
+    m_player_pos.angle += 180;
 }
 
 float Level::get_line_height_factor(int x, int view_width)
@@ -109,8 +107,7 @@ float Level::get_line_height_factor(int x, int view_width)
     Position pos(m_player_pos);
     
     //Each ray comes from the player at a slightly different angle according to the FOV.
-    double fov = 60;
-    double angle = - (fov/2) + ((fov/view_width)*x);
+    double angle = - (m_player_fov/2) + ((m_player_fov/view_width)*x);
     
     pos.angle += angle;
     

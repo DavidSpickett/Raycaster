@@ -15,6 +15,74 @@
 
 const auto MAP_SIDE = 6;
 
+class LimitedAngle
+{
+public:
+    LimitedAngle(double value):
+        m_value(value)
+    {}
+    
+    LimitedAngle operator+(double value)
+    {
+        auto res = value + m_value;
+        return LimitedAngle(limit_value(res));
+    }
+    
+    LimitedAngle operator-(double value)
+    {
+        auto res = m_value + value;
+        return LimitedAngle(limit_value(res));
+    }
+    
+    bool operator==(const LimitedAngle& other) const
+    {
+        return other.GetValue() == m_value;
+    }
+    bool operator==(double other) const
+    {
+        return m_value == other;
+    }
+    
+    bool operator >(double other) const
+    {
+        return m_value > other;
+    }
+    bool operator <(double other) const
+    {
+        return m_value < other;
+    }
+    
+    LimitedAngle& operator+=(double angle)
+    {
+        m_value = limit_value(m_value+angle);
+        return *this;
+    }
+    
+    LimitedAngle& operator-=(double angle)
+    {
+        m_value = limit_value(m_value-angle);
+        return *this;
+    }
+    
+    double GetValue() const { return m_value; }
+    
+private:
+    double limit_value(double value)
+    {
+        while (value >= 360)
+        {
+            value -= 360;
+        }
+        while (value < 0)
+        {
+            value = 360 + value;
+        }
+        return value;
+    }
+    
+    double m_value;
+};
+
 struct Position
 {
     Position(int x, int y, double angle):
@@ -27,7 +95,7 @@ struct Position
     
     int x;
     int y;
-    double angle; //0 means facing North/forward
+    LimitedAngle angle; //0 means facing North/forward
 };
 
 Position add_to_pos(const Position& pos, unsigned distance);
@@ -42,7 +110,8 @@ struct Level
                 0,1,0,0,0,0,
                 0,0,0,0,0,0},
         m_tile_side(500),
-        m_player_pos(2000, 1500, 0)
+        m_player_pos(2000, 1500, 0),
+        m_player_fov(60)
     {
         m_map_width = MAP_SIDE*m_tile_side;
         m_map_height = MAP_SIDE*m_tile_side;
@@ -59,6 +128,7 @@ struct Level
     
     int m_map_width;
     int m_map_height;
+    double m_player_fov;
     
     float get_line_height_factor(int x, int view_width);
     
