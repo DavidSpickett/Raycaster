@@ -126,11 +126,87 @@ void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)
         end_heading.x, end_heading.y);
 }
 
+using WallShape = std::array<SDL_Point, 5>;
+
+namespace
+{
+    WallShape line_run_to_shape(
+        std::vector<int>& heights, int screen_height, int x)
+    {
+        auto midscreen = screen_height/2;
+        WallShape ret;
+        //X is one beyond end
+        x -= 1;
+        
+        //Left side (starting at bottom left)
+        ret[0] = SDL_Point{int(x-heights.size()), midscreen+heights[0]};
+        ret[1] = SDL_Point{int(x-heights.size()), midscreen-heights[0]};
+        
+        //Right side
+        ret[2] = SDL_Point{x, midscreen-heights[heights.size()-1]};
+        ret[3] = SDL_Point{x, midscreen+heights[heights.size()-1]};
+        
+        //And back to the bottom left
+        ret[4] = ret[0];
+        
+        return ret;
+    }
+}
+
+void SDLApp::draw_lines_alt(std::vector<float> height_factors)
+{
+    clear();
+    std::vector<int> current_run;
+    SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+    
+    for (auto x=0; x != height_factors.size(); ++x)
+    {
+        auto line_height = (m_height*height_factors[x])/2;
+        
+        if (line_height == 0)
+        {
+            if (current_run.size())
+            {
+                WallShape points = line_run_to_shape(current_run, m_height, x);
+                SDL_RenderDrawLines(m_renderer, &points[0], 5);
+                current_run.clear();
+            }
+        }
+        else if (current_run.size() >= 2)
+        {
+            //Descending size
+            auto run_size = current_run.size();
+            if (
+                ((current_run[run_size-1] < current_run[run_size-2]) &&
+                (line_height > current_run[run_size-1]))
+                ||
+                ((current_run[run_size-1] > current_run[run_size-2]) &&
+                 (line_height < current_run[run_size-1])))
+            {
+                WallShape points = line_run_to_shape(current_run, m_height, x);
+                SDL_RenderDrawLines(m_renderer, &points[0], 5);
+                current_run.clear();
+            }
+            current_run.push_back(line_height);
+        }
+        else
+        {
+            current_run.push_back(line_height);
+        }
+    }
+    
+    if (current_run.size())
+    {
+        WallShape points = line_run_to_shape(current_run, m_height, int(height_factors.size()));
+        SDL_RenderDrawLines(m_renderer, &points[0], 5);
+    }
+}
+
 void SDLApp::draw_lines(std::vector<float> height_factors)
 {
     clear();
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
-    
+
     auto midscreen = m_height/2;
     for (auto x=0; x != height_factors.size(); ++x)
     {

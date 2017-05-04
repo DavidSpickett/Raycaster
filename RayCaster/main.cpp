@@ -47,7 +47,8 @@ int main(int argc, char* argv[])
         
         level.apply_movement(state);
 
-        app.draw_lines(level.get_line_heights(win_width));
+        //app.draw_lines(level.get_line_heights(win_width));
+        app.draw_lines_alt(level.get_line_heights(win_width));
         app.draw_minimap(level);
         app.draw_to_screen();
         
