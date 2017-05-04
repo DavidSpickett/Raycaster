@@ -126,8 +126,8 @@ struct Position
     SDL_Point to_minimap_point(int level_height, int tile_size, int cell_size) const
     {
         return SDL_Point{
-            int((float(x)/tile_size) * cell_size),
-            int((float(level_height-y)/tile_size) * cell_size)
+            static_cast<int>((float(x)/tile_size) * cell_size),
+            static_cast<int>((float(level_height-y)/tile_size) * cell_size)
         };
     }
     

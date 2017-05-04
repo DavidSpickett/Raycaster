@@ -32,14 +32,6 @@ SDLApp::SDLApp(int width, int height):
     m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 }
 
-namespace
-{
-    int to_minimap_coord(int coord, const Level& level, int cell_size)
-    {
-        return (float(coord)/level.m_tile_side) * cell_size;
-    }
-}
-
 void SDLApp::draw_minimap(const Level& level)
 {
     const auto cell_size = 10;
@@ -126,80 +118,77 @@ void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)
         end_heading.x, end_heading.y);
 }
 
-using WallShape = std::array<SDL_Point, 5>;
-
-namespace
-{
-    WallShape line_run_to_shape(
-        std::vector<int>& heights, int screen_height, int x)
-    {
-        auto midscreen = screen_height/2;
-        WallShape ret;
-        //X is one beyond end
-        x -= 1;
-        
-        //Left side (starting at bottom left)
-        ret[0] = SDL_Point{int(x-heights.size()), midscreen+heights[0]};
-        ret[1] = SDL_Point{int(x-heights.size()), midscreen-heights[0]};
-        
-        //Right side
-        ret[2] = SDL_Point{x, midscreen-heights[heights.size()-1]};
-        ret[3] = SDL_Point{x, midscreen+heights[heights.size()-1]};
-        
-        //And back to the bottom left
-        ret[4] = ret[0];
-        
-        return ret;
-    }
-}
-
 void SDLApp::draw_lines_alt(std::vector<float> height_factors)
 {
     clear();
-    std::vector<int> current_run;
     SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+    auto midscreen = m_height/2;
+    
+    /*This can be further optimised. For each of the chunks we make we only
+    the first two points on the left and then a point each time the trend of
+     the line changes. If it was getting lower then starts going up, add a point.
+     */
+    
+    using LineChunk = std::pair<int, std::vector<int>>;
+    std::vector<LineChunk> chunks;
+    LineChunk current_chunk = std::make_pair(0, std::vector<int>());
     
     for (auto x=0; x != height_factors.size(); ++x)
     {
-        auto line_height = (m_height*height_factors[x])/2;
+        int line_height = (m_height*height_factors[x])/2;
         
-        if (line_height == 0)
+        if (line_height != 0)
         {
-            if (current_run.size())
+            if (current_chunk.second.size())
             {
-                WallShape points = line_run_to_shape(current_run, m_height, x);
-                SDL_RenderDrawLines(m_renderer, &points[0], 5);
-                current_run.clear();
+                current_chunk.second.push_back(line_height);
             }
-        }
-        else if (current_run.size() >= 2)
-        {
-            //Descending size
-            auto run_size = current_run.size();
-            if (
-                ((current_run[run_size-1] < current_run[run_size-2]) &&
-                (line_height > current_run[run_size-1]))
-                ||
-                ((current_run[run_size-1] > current_run[run_size-2]) &&
-                 (line_height < current_run[run_size-1])))
+            else
             {
-                WallShape points = line_run_to_shape(current_run, m_height, x);
-                SDL_RenderDrawLines(m_renderer, &points[0], 5);
-                current_run.clear();
+                current_chunk = std::make_pair(x, std::vector<int>{line_height});
             }
-            current_run.push_back(line_height);
         }
         else
         {
-            current_run.push_back(line_height);
+            if (current_chunk.second.size())
+            {
+                chunks.push_back(current_chunk);
+                current_chunk.second.clear();
+            }
         }
     }
     
-    if (current_run.size())
+    if (current_chunk.second.size())
     {
-        WallShape points = line_run_to_shape(current_run, m_height, int(height_factors.size()));
-        SDL_RenderDrawLines(m_renderer, &points[0], 5);
+        chunks.push_back(current_chunk);
     }
+    
+    //Now we have runs of non 0 line heights, draw them.
+    std::for_each(chunks.begin(), chunks.end(), [=](LineChunk& chunk)
+    {
+        std::vector<SDL_Point> points;
+        
+        //1st we go forward in the list (start at top left)
+        auto x = chunk.first;
+        std::vector<int>::iterator it=chunk.second.begin();
+        for ( ; it != chunk.second.end(); ++it, ++x)
+        {
+            points.push_back(SDL_Point{x, midscreen-*it});
+        }
+        
+        //Then go backwards from the bottom right
+        x = chunk.first + static_cast<int>(chunk.second.size()) -1;
+        std::vector<int>::reverse_iterator r_it = chunk.second.rbegin();
+        for ( ; r_it != chunk.second.rend(); ++r_it, --x)
+        {
+            points.push_back(SDL_Point{x, midscreen+*r_it});
+        }
+        
+        //Connect the two parts
+        points.push_back(points[0]);
+        
+        SDL_RenderDrawLines(m_renderer, &points[0], static_cast<int>(points.size()));
+    });
 }
 
 void SDLApp::draw_lines(std::vector<float> height_factors)
