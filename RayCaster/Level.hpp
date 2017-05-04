@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <array>
 #include <vector>
+#include <SDL2/SDL.h>
 
 const auto MAP_SIDE = 6;
 
@@ -93,10 +94,6 @@ struct Position
         x(other.x), y(other.y), angle(other.angle)
     {}
     
-    int x;
-    int y;
-    LimitedAngle angle; //0 means facing North/forward
-    
     Position& operator+=(int distance)
     {
         auto new_pos = *this + distance;
@@ -105,6 +102,18 @@ struct Position
         angle = new_pos.angle;
         return *this;
     }
+    
+    SDL_Point to_minimap_point(int level_height, int tile_size, int cell_size) const
+    {
+        return SDL_Point{
+            int((float(x)/tile_size) * cell_size),
+            int((float(level_height-y)/tile_size) * cell_size)
+        };
+    }
+    
+    int x;
+    int y;
+    LimitedAngle angle; //0 means facing North/forward
     
 private:
     Position operator+(int distance);

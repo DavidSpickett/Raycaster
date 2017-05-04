@@ -32,15 +32,18 @@ public:
         }
     }
     
-    void draw_lines(std::vector<float>& height_factors);
-    void draw_2d_map(const Level& level);
+    void draw_lines(std::vector<float> height_factors);
+    void draw_minimap(const Level& level);
     void draw_to_screen();
 
 private:
+    void draw_vision_cone(const Level& level, LimitedAngle fov);
+    
     void clear();
     
     int m_width;
     int m_height;
+    int m_minimap_cell_size;
     
     SDL_Renderer* m_renderer;
     SDL_Window* m_window;

@@ -47,9 +47,8 @@ int main(int argc, char* argv[])
         
         level.apply_movement(state);
 
-        auto lines = level.get_line_heights(win_width);
-        app.draw_lines(lines);
-        app.draw_2d_map(level);
+        app.draw_lines(level.get_line_heights(win_width));
+        app.draw_minimap(level);
         app.draw_to_screen();
         
         auto now = SDL_GetTicks();
@@ -58,8 +57,6 @@ int main(int argc, char* argv[])
             SDL_Delay(next_frame-now);
         }
         next_frame += tick_interval;
-        
-        //printf("Angle: %f\n", level.m_player_pos.angle.GetValue());
     }
     
     return 0;

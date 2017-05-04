@@ -10,7 +10,7 @@
 #include "SDLApp.hpp"
 
 SDLApp::SDLApp(int width, int height):
-    m_width(width), m_height(height)
+    m_width(width), m_height(height), m_minimap_cell_size(10)
 {
     //Initialize SDL
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -40,7 +40,7 @@ namespace
     }
 }
 
-void SDLApp::draw_2d_map(const Level& level)
+void SDLApp::draw_minimap(const Level& level)
 {
     const auto cell_size = 10;
     
@@ -80,45 +80,40 @@ void SDLApp::draw_2d_map(const Level& level)
     
     //Player position
     SDL_SetRenderDrawColor(m_renderer, 0, 255, 0, 255);
-    auto x = to_minimap_coord(level.m_player_pos.x, level, cell_size);
-    auto y = to_minimap_coord(level.m_map_height-level.m_player_pos.y, level, cell_size);
+    SDL_Point player_pos = level.m_player_pos.to_minimap_point(level.m_map_height, level.m_tile_side, m_minimap_cell_size);
+    
     SDL_Rect player;
-    player.x = x;
-    player.y = y;
+    player.x = player_pos.x;
+    player.y = player_pos.y;
     player.w = 2;
     player.h = 2;
     SDL_RenderDrawRect(m_renderer, &player);
     
-    //Vison cone
+    draw_vision_cone(level, level.m_player_fov);
+}
+
+void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)
+{
+    const auto vision_length = 500; //In full size map pixels
     SDL_Point points[4];
     
-    points[0].x = to_minimap_coord(level.m_player_pos.x, level, cell_size);
-    points[0].y = to_minimap_coord(level.m_map_height-level.m_player_pos.y, level, cell_size);
-    
-    const auto vision_length = 500;
-    
-    //Left hand extend
     Position left_extent(level.m_player_pos);
     left_extent.angle -= level.m_player_fov.GetValue()/2;
     left_extent += vision_length;
-    
-    points[1].x = to_minimap_coord(left_extent.x, level, cell_size);
-    points[1].y = to_minimap_coord(level.m_map_height-left_extent.y, level, cell_size);
     
     Position right_extent(level.m_player_pos);
     right_extent.angle += level.m_player_fov.GetValue()/2;
     right_extent += vision_length;
     
-    points[2].x = to_minimap_coord(right_extent.x, level, cell_size);
-    points[2].y = to_minimap_coord(level.m_map_height-right_extent.y, level, cell_size);
-    
-    points[3].x = to_minimap_coord(level.m_player_pos.x, level, cell_size);
-    points[3].y = to_minimap_coord(level.m_map_height-level.m_player_pos.y, level, cell_size);
+    points[0] = level.m_player_pos.to_minimap_point(level.m_map_height, level.m_tile_side, m_minimap_cell_size);
+    points[1] = left_extent.to_minimap_point(level.m_map_height, level.m_tile_side, m_minimap_cell_size);
+    points[2] = right_extent.to_minimap_point(level.m_map_height, level.m_tile_side, m_minimap_cell_size);
+    points[3] = points[0];
     
     SDL_RenderDrawLines(m_renderer, points, 4);
 }
 
-void SDLApp::draw_lines(std::vector<float>& height_factors)
+void SDLApp::draw_lines(std::vector<float> height_factors)
 {
     clear();
     

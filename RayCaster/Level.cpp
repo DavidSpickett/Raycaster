@@ -8,7 +8,6 @@
 
 #include "Level.hpp"
 #include <math.h>
-#include <SDL2/SDL.h>
 
 Position Position::operator+(int distance)
 {
