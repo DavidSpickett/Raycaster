@@ -8,25 +8,26 @@
 
 #include "Level.hpp"
 #include <math.h>
+#include <SDL2/SDL.h>
 
-Position add_to_pos(const Position& pos, unsigned distance)
+Position Position::operator+(int distance)
 {
-    auto ret(pos);
+    auto ret(*this);
     
     //We could generalise this since cos(0)=1 etc...
-    if (pos.angle == 0)
+    if (angle == 0)
     {
         ret.y += distance;
     }
-    else if (pos.angle == 90)
+    else if (angle == 90)
     {
         ret.x += distance;
     }
-    else if (pos.angle == 180)
+    else if (angle == 180)
     {
         ret.y -= distance;
     }
-    else if (pos.angle == 270)
+    else if (angle == 270)
     {
         ret.x -= distance;
     }
@@ -35,7 +36,7 @@ Position add_to_pos(const Position& pos, unsigned distance)
         //Convert distance and angle into cartesian X and Y to change the position
         
         //Translate everything so it's using the y axis north as it's 'x' side.
-        auto calc_angle = pos.angle;
+        auto calc_angle = angle;
         
         if ((calc_angle > 90) && (calc_angle < 180))
         {
@@ -54,17 +55,17 @@ Position add_to_pos(const Position& pos, unsigned distance)
         auto y = cos(triangle_angle)*distance;
         auto x = sin(triangle_angle)*distance;
         
-        if ((pos.angle > 90) && (pos.angle < 180))
+        if ((angle > 90) && (angle < 180))
         {
             std::swap(x, y);
             y *= -1;
         }
-        else if ((pos.angle > 180) && (pos.angle < 270))
+        else if ((angle > 180) && (angle < 270))
         {
             y *= -1;
             x *= -1;
         }
-        else if ((pos.angle > 270) && (pos.angle < 360))
+        else if ((angle > 270) && (angle < 360))
         {
             std::swap(x, y);
             x *= -1;
@@ -77,6 +78,28 @@ Position add_to_pos(const Position& pos, unsigned distance)
     return ret;
 }
 
+void Level::apply_movement(const uint8_t* state)
+{
+    if (state[SDL_SCANCODE_LEFT])
+    {
+        m_player_pos.angle -= m_turn_amount;
+    }
+    else if (state[SDL_SCANCODE_RIGHT])
+    {
+        m_player_pos.angle += m_turn_amount;
+    }
+    else if (state[SDL_SCANCODE_UP])
+    {
+        m_player_pos += m_move_amount;
+    }
+    else if (state[SDL_SCANCODE_DOWN])
+    {
+        m_player_pos.angle -= 180;
+        m_player_pos += m_move_amount;
+        m_player_pos.angle += 180;
+    }
+}
+
 std::vector<float> Level::get_line_heights(int view_width)
 {
     //View width is the screenwidth.
@@ -86,18 +109,6 @@ std::vector<float> Level::get_line_heights(int view_width)
         ret.push_back(get_line_height_factor(x, view_width));
     }
     return ret;
-}
-
-void Level::player_forward(int amount)
-{
-    m_player_pos = add_to_pos(m_player_pos, amount);
-}
-
-void Level::player_backward(int amount)
-{
-    m_player_pos.angle -= 180;
-    m_player_pos = add_to_pos(m_player_pos, amount);
-    m_player_pos.angle += 180;
 }
 
 float Level::get_line_height_factor(int x, int view_width)
@@ -133,7 +144,7 @@ float Level::get_line_height_factor(int x, int view_width)
         }
         
         distance += distance_step;
-        pos = add_to_pos(pos, distance_step);
+        pos += distance_step;
     }
 
     /*The the scale of the object falls off with distance. Assuming at 0 distance from

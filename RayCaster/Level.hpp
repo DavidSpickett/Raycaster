@@ -96,9 +96,19 @@ struct Position
     int x;
     int y;
     LimitedAngle angle; //0 means facing North/forward
+    
+    Position& operator+=(int distance)
+    {
+        auto new_pos = *this + distance;
+        x = new_pos.x;
+        y = new_pos.y;
+        angle = new_pos.angle;
+        return *this;
+    }
+    
+private:
+    Position operator+(int distance);
 };
-
-Position add_to_pos(const Position& pos, unsigned distance);
 
 struct Level
 {
@@ -111,7 +121,9 @@ struct Level
                 0,1,0,0,0,1},
         m_tile_side(500),
         m_player_pos(2000, 1500, 0),
-        m_player_fov(60)
+        m_player_fov(60),
+        m_turn_amount(10),
+        m_move_amount(10)
     {
         m_map_width = MAP_SIDE*m_tile_side;
         m_map_height = MAP_SIDE*m_tile_side;
@@ -120,11 +132,10 @@ struct Level
     std::vector<float> get_line_heights(int view_width);
     Position m_player_pos;
     
-    void player_forward(int amount);
-    void player_backward(int amount);
-    
     bool in_map(Position);
     bool in_wall(Position);
+    
+    void apply_movement(const uint8_t* state);
     
     int m_map_width;
     int m_map_height;
@@ -134,6 +145,10 @@ struct Level
     
     std::array<int, MAP_SIDE*MAP_SIDE> m_tiles;
     int m_tile_side;
+    
+private:
+    const int m_turn_amount;
+    const int m_move_amount;
 };
 
 #endif /* Level_hpp */

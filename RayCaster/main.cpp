@@ -5,8 +5,6 @@
 const auto win_height = 480;
 const auto win_width  = 640;
 const auto tick_interval = 60;
-const auto turn_amount = 10;
-const auto move_amount = 10;
 const auto fov_change_amount = 10;
 
 int main(int argc, char* argv[])
@@ -47,30 +45,7 @@ int main(int argc, char* argv[])
             }
         }
         
-        if (state[SDL_SCANCODE_LEFT])
-        {
-            level.m_player_pos.angle -= turn_amount;
-            if (level.m_player_pos.angle < 0)
-            {
-                level.m_player_pos.angle += 360;
-            }
-        }
-        else if (state[SDL_SCANCODE_RIGHT])
-        {
-            level.m_player_pos.angle += turn_amount;
-            if (level.m_player_pos.angle > 360)
-            {
-                level.m_player_pos.angle -= 360;
-            }
-        }
-        else if (state[SDL_SCANCODE_UP])
-        {
-            level.player_forward(move_amount);
-        }
-        else if (state[SDL_SCANCODE_DOWN])
-        {
-            level.player_backward(move_amount);
-        }
+        level.apply_movement(state);
 
         auto lines = level.get_line_heights(win_width);
         app.draw_lines(lines);
