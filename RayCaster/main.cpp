@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
         }
         next_frame += tick_interval;
         
-        printf("Angle: %f\n", level.m_player_pos.angle);
+        //printf("Angle: %f\n", level.m_player_pos.angle.GetValue());
     }
     
     return 0;

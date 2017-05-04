@@ -32,6 +32,14 @@ SDLApp::SDLApp(int width, int height):
     m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 }
 
+namespace
+{
+    int to_minimap_coord(int coord, const Level& level, int cell_size)
+    {
+        return (float(coord)/level.m_tile_side) * cell_size;
+    }
+}
+
 void SDLApp::draw_2d_map(const Level& level)
 {
     const auto cell_size = 10;
@@ -72,8 +80,8 @@ void SDLApp::draw_2d_map(const Level& level)
     
     //Player position
     SDL_SetRenderDrawColor(m_renderer, 0, 255, 0, 255);
-    float x = (float(level.m_player_pos.x)/level.m_tile_side) * cell_size;
-    float y = (float(level.m_map_height - level.m_player_pos.y)/level.m_tile_side)*cell_size;
+    auto x = to_minimap_coord(level.m_player_pos.x, level, cell_size);
+    auto y = to_minimap_coord(level.m_map_height-level.m_player_pos.y, level, cell_size);
     SDL_Rect player;
     player.x = x;
     player.y = y;
@@ -81,21 +89,33 @@ void SDLApp::draw_2d_map(const Level& level)
     player.h = 2;
     SDL_RenderDrawRect(m_renderer, &player);
     
-    //Player direction
-    SDL_SetRenderDrawColor(m_renderer, 255, 255, 0, 255);
-    SDL_Point p_heading[2];
-    p_heading[0].x = x;
-    p_heading[0].y = y;
+    //Vison cone
+    SDL_Point points[4];
     
-    //Add to player pos to get end of heading line
-    Position heading_pos = add_to_pos(level.m_player_pos, 500);
-    float heading_x = (float(heading_pos.x)/level.m_tile_side) * cell_size;
-    float heading_y = (float(level.m_map_height - heading_pos.y)/level.m_tile_side)*cell_size;
+    points[0].x = to_minimap_coord(level.m_player_pos.x, level, cell_size);
+    points[0].y = to_minimap_coord(level.m_map_height-level.m_player_pos.y, level, cell_size);
     
-    p_heading[1].x = heading_x;
-    p_heading[1].y = heading_y;
+    const auto vision_length = 500;
     
-    SDL_RenderDrawLines(m_renderer, p_heading, 2);
+    //Left hand extend
+    Position left_extent(level.m_player_pos);
+    left_extent.angle -= level.m_player_fov/2;
+    left_extent = add_to_pos(left_extent, vision_length);
+    
+    points[1].x = to_minimap_coord(left_extent.x, level, cell_size);
+    points[1].y = to_minimap_coord(level.m_map_height-left_extent.y, level, cell_size);
+    
+    Position right_extent(level.m_player_pos);
+    right_extent.angle += level.m_player_fov/2;
+    right_extent = add_to_pos(right_extent, vision_length);
+    
+    points[2].x = to_minimap_coord(right_extent.x, level, cell_size);
+    points[2].y = to_minimap_coord(level.m_map_height-right_extent.y, level, cell_size);
+    
+    points[3].x = to_minimap_coord(level.m_player_pos.x, level, cell_size);
+    points[3].y = to_minimap_coord(level.m_map_height-level.m_player_pos.y, level, cell_size);
+    
+    SDL_RenderDrawLines(m_renderer, points, 4);
 }
 
 void SDLApp::draw_lines(std::vector<float>& height_factors)
