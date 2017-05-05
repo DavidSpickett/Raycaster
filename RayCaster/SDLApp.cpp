@@ -127,9 +127,12 @@ void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
     std::vector<int> last_heights;
     std::vector<SDL_Point> forward_points;
     std::vector<SDL_Point> reverse_points;
+    //Number of points equal to the last stored height aka last_heights[1]
+    auto equal_heights_run = 0;
     
     for (auto x=0; x < height_factors.size(); ++x)
     {
+        //Divide by two for each side of the horizon line
         int line_height = (m_height*height_factors[x])/2;
         
         if (line_height && (x != (height_factors.size()-1)))
@@ -137,24 +140,39 @@ void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
             //Got enough to check the trend
             if (last_heights.size() == 2)
             {
-                //Check whether trend has changed
-                if (
-                    //Was decreasing, new line is taller
-                    ((last_heights[0] > last_heights[1]) &&
-                    (line_height > last_heights[1]))
-                    ||
-                    //Was increasing, new line is shorter
-                    ((last_heights[0] < last_heights[1]) &&
-                     ((line_height < last_heights[1])))
-                    ||
-                    //Straight line starting to go up OR down
-                    ((last_heights[0] == last_heights[1]) &&
-                     (line_height != last_heights[1]))
-                    )
+                //Was decreasing, new line is taller
+                auto was_decreasing = ((last_heights[0] > last_heights[1]) &&
+                 (line_height > last_heights[1]));
+                
+                //Was increasing, new line is shorter
+                auto was_increasing = ((last_heights[0] < last_heights[1]) && ((line_height < last_heights[1])));
+                
+                //If the trend has changed
+                if (was_increasing || was_decreasing)
                 {
-                    //Add a vertical line here (must be a corner)
-                    auto top_point = SDL_Point{x, midscreen-line_height};
-                    auto bottom_point = SDL_Point{x, midscreen+line_height};
+                    /*
+                     Add a vertical line when gradient changes (corners)
+                     X coord is half way back through the last run of equal heights if we had one.
+                    
+                     All points renderer might look like this:
+                           -------
+                     ------       -----
+                     We want to draw a corner somewhere there. By counting the run of highest lines
+                     we draw it here:
+                           -------
+                     ------       -----
+                              ^
+                     Not here:
+                           -------
+                     ------       -----
+                                 ^
+                     */
+                    //-1 because this line caused the change but we want the previous height
+                    auto vert_x = x-1-(equal_heights_run/2);
+                    auto vert_line_height = last_heights.back();
+                    
+                    auto top_point = SDL_Point{vert_x, midscreen-vert_line_height};
+                    auto bottom_point = SDL_Point{vert_x, midscreen+vert_line_height};
                     
                     //Draw down then go back up
                     forward_points.push_back(top_point);
@@ -166,18 +184,29 @@ void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
                     //Start a new trend history
                     last_heights.clear();
                     last_heights.push_back(line_height);
+                    equal_heights_run = 0;
                 }
-                else
+                else if (line_height != last_heights.back())
                 {
                     //Remove older height
-                    std::swap(last_heights[0], last_heights[1]);
+                    std::swap(last_heights[0], last_heights.back());
                     last_heights.pop_back();
+                    
                     last_heights.push_back(line_height);
+                    equal_heights_run = 0;
+                }
+                else if (line_height == last_heights.back())
+                {
+                    /*
+                    We don't count runs of equal as part of the trend, but count
+                    them so we can go back to place corners
+                    */
+                    equal_heights_run += 1;
                 }
             }
             else
             {
-                //Starting first or new polygon
+                //Starting first/new polygon
                 if (last_heights.size() == 0)
                 {
                     forward_points.push_back(SDL_Point{x, midscreen-line_height});
@@ -187,7 +216,6 @@ void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
                 last_heights.push_back(line_height);
             }
         }
-        //TODO: is there some way not to draw the far right edge? technically it shouldn't join up
         else if ((line_height == 0) || (x == (height_factors.size()-1)))
         {
             //Either the wall ended or we've hit the end of the screen
@@ -195,8 +223,9 @@ void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
             if (forward_points.size())
             {
                 //Draw this polygon
-                
+ 
                 //If the line height just became 0, the shape should have ended on the previous X
+                //Otherwise we're on the edge of the screen
                 auto last_x = x;
                 auto last_line_height = line_height;
                 if (line_height == 0)
@@ -208,8 +237,10 @@ void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
                 forward_points.push_back(SDL_Point{last_x, midscreen-last_line_height});
                 reverse_points.push_back(SDL_Point{last_x, midscreen+last_line_height});
                 
-                //Add the fwd and reverse lists together with the reverse list reversed
-                //As if we went from top left to top right, then bottom right to bottom left
+                /*
+                Add the fwd and reverse lists together with the reverse list reversed
+                As if we went from top left to top right, then bottom right to bottom left
+                */
                 std::vector<SDL_Point> all_points;
                 all_points.reserve(forward_points.size()+reverse_points.size());
                 all_points.insert(all_points.end(), forward_points.begin(), forward_points.end());
@@ -224,6 +255,7 @@ void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
                 last_heights.clear();
                 forward_points.clear();
                 reverse_points.clear();
+                equal_heights_run = 0;
             }
         }
     }

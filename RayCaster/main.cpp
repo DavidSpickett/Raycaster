@@ -57,6 +57,12 @@ int main(int argc, char* argv[])
         }
         
         level.apply_movement(state);
+        
+        /*
+         TODO:
+        When a shape finishes on the edge of the sceen the last vertical
+        line shouldn't be drawn.
+         */
 
         auto heights = level.get_line_heights(win_width);
         switch (video_mode)
