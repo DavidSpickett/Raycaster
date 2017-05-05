@@ -11,6 +11,7 @@ int main(int argc, char* argv[])
 {
     SDLApp app(win_width, win_height);
     Level level;
+    auto video_mode = 0;
     
     SDL_Event event;
     auto run = true;
@@ -41,14 +42,36 @@ int main(int argc, char* argv[])
                     {
                         level.m_player_fov -= fov_change_amount;
                     }
+                    else if (state[SDL_SCANCODE_EQUALS])
+                    {
+                        video_mode = video_mode == 2 ? 0 : video_mode+1;
+                        printf("Video mode %d\n", video_mode);
+                    }
+                    else if (state[SDL_SCANCODE_MINUS])
+                    {
+                        video_mode = video_mode == 0 ? 2 : video_mode-1;
+                        printf("Video mode %d\n", video_mode);
+                    }
                 }
             }
         }
         
         level.apply_movement(state);
 
-        //app.draw_lines(level.get_line_heights(win_width));
-        app.draw_lines_alt(level.get_line_heights(win_width));
+        auto heights = level.get_line_heights(win_width);
+        switch (video_mode)
+        {
+            case 0:
+                app.draw_line_heights(heights);
+                break;
+            case 1:
+                app.draw_lines_from_points(heights);
+                break;
+            case 2:
+                app.draw_lines_as_polygons(heights);
+                break;
+        }
+        
         app.draw_minimap(level);
         app.draw_to_screen();
         

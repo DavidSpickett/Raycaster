@@ -118,7 +118,119 @@ void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)
         end_heading.x, end_heading.y);
 }
 
-void SDLApp::draw_lines_alt(std::vector<float> height_factors)
+void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
+{
+    clear();
+    SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+    auto midscreen = m_height/2;
+    
+    std::vector<int> last_heights;
+    std::vector<SDL_Point> forward_points;
+    std::vector<SDL_Point> reverse_points;
+    
+    for (auto x=0; x < height_factors.size(); ++x)
+    {
+        int line_height = (m_height*height_factors[x])/2;
+        
+        if (line_height && (x != (height_factors.size()-1)))
+        {
+            //Got enough to check the trend
+            if (last_heights.size() == 2)
+            {
+                //Check whether trend has changed
+                if (
+                    //Was decreasing, new line is taller
+                    ((last_heights[0] > last_heights[1]) &&
+                    (line_height > last_heights[1]))
+                    ||
+                    //Was increasing, new line is shorter
+                    ((last_heights[0] < last_heights[1]) &&
+                     ((line_height < last_heights[1])))
+                    ||
+                    //Straight line starting to go up OR down
+                    ((last_heights[0] == last_heights[1]) &&
+                     (line_height != last_heights[1]))
+                    )
+                {
+                    //Add a vertical line here (must be a corner)
+                    auto top_point = SDL_Point{x, midscreen-line_height};
+                    auto bottom_point = SDL_Point{x, midscreen+line_height};
+                    
+                    //Draw down then go back up
+                    forward_points.push_back(top_point);
+                    forward_points.push_back(bottom_point);
+                    forward_points.push_back(top_point);
+                    
+                    reverse_points.push_back(bottom_point);
+                    
+                    //Start a new trend history
+                    last_heights.clear();
+                    last_heights.push_back(line_height);
+                }
+                else
+                {
+                    //Remove older height
+                    std::swap(last_heights[0], last_heights[1]);
+                    last_heights.pop_back();
+                    last_heights.push_back(line_height);
+                }
+            }
+            else
+            {
+                //Starting first or new polygon
+                if (last_heights.size() == 0)
+                {
+                    forward_points.push_back(SDL_Point{x, midscreen-line_height});
+                    reverse_points.push_back(SDL_Point{x, midscreen+line_height});
+                }
+                
+                last_heights.push_back(line_height);
+            }
+        }
+        //TODO: is there some way not to draw the far right edge? technically it shouldn't join up
+        else if ((line_height == 0) || (x == (height_factors.size()-1)))
+        {
+            //Either the wall ended or we've hit the end of the screen
+            //Or we never started a polygon at all
+            if (forward_points.size())
+            {
+                //Draw this polygon
+                
+                //If the line height just became 0, the shape should have ended on the previous X
+                auto last_x = x;
+                auto last_line_height = line_height;
+                if (line_height == 0)
+                {
+                    last_x -= 1;
+                    last_line_height = last_heights.back();
+                }
+                
+                forward_points.push_back(SDL_Point{last_x, midscreen-last_line_height});
+                reverse_points.push_back(SDL_Point{last_x, midscreen+last_line_height});
+                
+                //Add the fwd and reverse lists together with the reverse list reversed
+                //As if we went from top left to top right, then bottom right to bottom left
+                std::vector<SDL_Point> all_points;
+                all_points.reserve(forward_points.size()+reverse_points.size());
+                all_points.insert(all_points.end(), forward_points.begin(), forward_points.end());
+                //Note: reverse begin
+                all_points.insert(all_points.end(), reverse_points.rbegin(), reverse_points.rend());
+                
+                //Join up the two ends of the polgyon (bottom left to top left)
+                all_points.push_back(all_points[0]);
+                
+                SDL_RenderDrawLines(m_renderer, &all_points[0], static_cast<int>(all_points.size()));
+                
+                last_heights.clear();
+                forward_points.clear();
+                reverse_points.clear();
+            }
+        }
+    }
+    
+}
+
+void SDLApp::draw_lines_from_points(std::vector<float> height_factors)
 {
     clear();
     SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
@@ -127,7 +239,10 @@ void SDLApp::draw_lines_alt(std::vector<float> height_factors)
     /*This can be further optimised. For each of the chunks we make we only
     the first two points on the left and then a point each time the trend of
      the line changes. If it was getting lower then starts going up, add a point.
-     */
+    
+    AND!!!!!!
+    Each time we place a mid point because the line changed gradient, that MUST BE
+    a corner of some kind! So we can draw a vertical line there to signify corners!!!!*/
     
     using LineChunk = std::pair<int, std::vector<int>>;
     std::vector<LineChunk> chunks;
@@ -191,7 +306,7 @@ void SDLApp::draw_lines_alt(std::vector<float> height_factors)
     });
 }
 
-void SDLApp::draw_lines(std::vector<float> height_factors)
+void SDLApp::draw_line_heights(std::vector<float> height_factors)
 {
     clear();
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
