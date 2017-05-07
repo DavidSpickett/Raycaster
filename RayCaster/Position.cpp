@@ -56,8 +56,8 @@ Position Position::operator+(int distance) const
         x *= -1;
     }
     
-    ret.x += x;
-    ret.y += y;
+    ret.x += int(x);
+    ret.y += int(y);
     
     return ret;
 }

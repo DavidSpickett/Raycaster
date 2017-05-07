@@ -11,15 +11,21 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <stdexcept>
 
 double to_radians(double degrees);
 
 class LimitedAngle
 {
 public:
-    LimitedAngle(double value):
-    m_value(value)
-    {}
+    LimitedAngle(double value)
+    {
+        if ((value >= 360) || (value < 0))
+        {
+            throw std::runtime_error("LimitedAngle must be > 0 and < 360 degrees");
+        }
+        m_value = value;
+    }
     
     LimitedAngle operator+(double value) const
     {
@@ -29,7 +35,7 @@ public:
     
     LimitedAngle operator-(double value) const
     {
-        auto res = m_value + value;
+        auto res = m_value - value;
         return LimitedAngle(limit_value(res));
     }
     
