@@ -34,8 +34,6 @@ SDLApp::SDLApp(int width, int height):
 
 void SDLApp::draw_minimap(const Level& level)
 {
-    const auto cell_size = 10;
-    
     //Walls and floor
     for (auto x=0; x != MAP_SIDE; ++x)
     {
@@ -51,24 +49,52 @@ void SDLApp::draw_minimap(const Level& level)
             }
             
             SDL_Rect r;
-            r.h = cell_size;
-            r.w = cell_size;
-            r.x = x*cell_size;
-            r.y = y*cell_size;
+            r.h = m_minimap_cell_size;
+            r.w = m_minimap_cell_size;
+            r.x = x*m_minimap_cell_size;
+            r.y = y*m_minimap_cell_size;
             
             SDL_RenderFillRect(m_renderer, &r);
         }
     }
     
-    //Outline
-    SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
-    SDL_Rect outline;
-    outline.x = -1;
-    outline.y = -1;
-    outline.w = (MAP_SIDE*cell_size)+1;
-    outline.h = outline.w;
+    //Gridlines
+    SDL_SetRenderDrawColor(m_renderer, 0, 0, 255, 255);
+    for (auto x=0; x != MAP_SIDE; ++x)
+    {
+        for (auto y=0; y != MAP_SIDE; ++y)
+        {
+            std::array<SDL_Point, 3> points;
+            
+            //Bottom left
+            points[0].x = x*m_minimap_cell_size;
+            points[0].y = (y+1)*m_minimap_cell_size;
+            
+            //Top left
+            points[1].x = x*m_minimap_cell_size;
+            points[1].y = y*m_minimap_cell_size;
+            
+            //Top right
+            points[2].x = (x+1)*m_minimap_cell_size;
+            points[2].y = y*m_minimap_cell_size;
+            
+            SDL_RenderDrawLines(m_renderer, &points[0], points.size());
+        }
+    }
     
-    SDL_RenderDrawRect(m_renderer, &outline);
+    //Right/bottom side of minimap
+    std::array<SDL_Point, 3> points;
+    
+    points[0].x = m_minimap_cell_size*MAP_SIDE;
+    points[0].y = 0;
+    
+    points[1].x = m_minimap_cell_size*MAP_SIDE;
+    points[1].y = m_minimap_cell_size*MAP_SIDE;
+    
+    points[2].x = 0;
+    points[2].y = m_minimap_cell_size*MAP_SIDE;
+    
+    SDL_RenderDrawLines(m_renderer, &points[0], points.size());
     
     draw_vision_cone(level, level.m_player_fov);
     
@@ -268,14 +294,6 @@ void SDLApp::draw_lines_from_points(std::vector<float> height_factors)
     SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
     auto midscreen = m_height/2;
     
-    /*This can be further optimised. For each of the chunks we make we only
-    the first two points on the left and then a point each time the trend of
-     the line changes. If it was getting lower then starts going up, add a point.
-    
-    AND!!!!!!
-    Each time we place a mid point because the line changed gradient, that MUST BE
-    a corner of some kind! So we can draw a vertical line there to signify corners!!!!*/
-    
     using LineChunk = std::pair<int, std::vector<int>>;
     std::vector<LineChunk> chunks;
     LineChunk current_chunk = std::make_pair(0, std::vector<int>());
@@ -350,7 +368,7 @@ void SDLApp::draw_line_heights(std::vector<float> height_factors)
         int line_height = (m_height*height_factors[x])/2;
         
         // Fade out with distance
-        auto alpha = 255;//std::max(float(10), 255*height_factors[x]);
+        auto alpha = std::max(float(10), 255*height_factors[x]);
         SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, alpha);
         
         if (line_height)
