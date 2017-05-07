@@ -13,6 +13,7 @@
 #include <SDL2/SDL.h>
 #include <vector>
 #include "Level.hpp"
+#include "Position.hpp"
 
 const auto SCREEN_FPS = 60;
 const auto SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;

@@ -10,6 +10,7 @@
 		2F0A36A71EB8E3D200C9DE2F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F0A36A61EB8E3D200C9DE2F /* main.cpp */; };
 		2F0A36AF1EB8E55E00C9DE2F /* SDLApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F0A36AD1EB8E55E00C9DE2F /* SDLApp.cpp */; };
 		2F0A36B21EB8E7EF00C9DE2F /* Level.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F0A36B01EB8E7EF00C9DE2F /* Level.cpp */; };
+		2F17A7D01EBF86FB00911E1D /* Position.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F17A7CE1EBF86FB00911E1D /* Position.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +32,10 @@
 		2F0A36AE1EB8E55E00C9DE2F /* SDLApp.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SDLApp.hpp; sourceTree = "<group>"; };
 		2F0A36B01EB8E7EF00C9DE2F /* Level.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Level.cpp; sourceTree = "<group>"; };
 		2F0A36B11EB8E7EF00C9DE2F /* Level.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Level.hpp; sourceTree = "<group>"; };
+		2F17A7CA1EBF80B900911E1D /* catch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = catch.hpp; sourceTree = "<group>"; };
+		2F17A7CB1EBF810000911E1D /* PositionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PositionTests.cpp; sourceTree = "<group>"; };
+		2F17A7CE1EBF86FB00911E1D /* Position.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Position.cpp; sourceTree = "<group>"; };
+		2F17A7CF1EBF86FB00911E1D /* Position.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Position.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +52,7 @@
 		2F0A369A1EB8E3D200C9DE2F = {
 			isa = PBXGroup;
 			children = (
+				2F17A7CD1EBF822E00911E1D /* Test */,
 				2F0A36A51EB8E3D200C9DE2F /* RayCaster */,
 				2F0A36A41EB8E3D200C9DE2F /* Products */,
 			);
@@ -63,12 +69,24 @@
 		2F0A36A51EB8E3D200C9DE2F /* RayCaster */ = {
 			isa = PBXGroup;
 			children = (
+				2F17A7CE1EBF86FB00911E1D /* Position.cpp */,
+				2F17A7CF1EBF86FB00911E1D /* Position.hpp */,
 				2F0A36B01EB8E7EF00C9DE2F /* Level.cpp */,
 				2F0A36B11EB8E7EF00C9DE2F /* Level.hpp */,
 				2F0A36A61EB8E3D200C9DE2F /* main.cpp */,
 				2F0A36AD1EB8E55E00C9DE2F /* SDLApp.cpp */,
 				2F0A36AE1EB8E55E00C9DE2F /* SDLApp.hpp */,
 			);
+			path = RayCaster;
+			sourceTree = "<group>";
+		};
+		2F17A7CD1EBF822E00911E1D /* Test */ = {
+			isa = PBXGroup;
+			children = (
+				2F17A7CB1EBF810000911E1D /* PositionTests.cpp */,
+				2F17A7CA1EBF80B900911E1D /* catch.hpp */,
+			);
+			name = Test;
 			path = RayCaster;
 			sourceTree = "<group>";
 		};
@@ -131,6 +149,7 @@
 			files = (
 				2F0A36B21EB8E7EF00C9DE2F /* Level.cpp in Sources */,
 				2F0A36A71EB8E3D200C9DE2F /* main.cpp in Sources */,
+				2F17A7D01EBF86FB00911E1D /* Position.cpp in Sources */,
 				2F0A36AF1EB8E55E00C9DE2F /* SDLApp.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -294,6 +313,7 @@
 				2F0A36AC1EB8E3D200C9DE2F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
