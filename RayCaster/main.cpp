@@ -59,11 +59,16 @@ int main(int argc, char* argv[])
         level.apply_movement(state);
         
         /*
-         TODO:
-        When a shape finishes on the edge of the sceen the last vertical
-        line shouldn't be drawn.
-         */
-
+        TODO:
+        When you look into the distance and two shapes overlap we should
+        know how to draw an edge to differentiate them.
+         This would also break the shape and make the size difference more
+         obvious.
+        
+        Perpsecitve correct the rays so that you don't get corners in the middle
+        of a wall close up.
+        */
+        
         auto heights = level.get_line_heights(win_width);
         switch (video_mode)
         {

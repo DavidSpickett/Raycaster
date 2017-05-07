@@ -9,6 +9,14 @@
 #include "Level.hpp"
 #include <math.h>
 
+namespace
+{
+    double to_radians(double degrees)
+    {
+        return (degrees/180) * M_PI;
+    }
+}
+
 Position Position::operator+(int distance) const
 {
     auto ret(*this);
@@ -50,7 +58,7 @@ Position Position::operator+(int distance) const
             calc_angle -= 270;
         }
         
-        auto triangle_angle = (calc_angle.GetValue()/180) * M_PI;
+        auto triangle_angle = to_radians(calc_angle.GetValue());
         auto y = cos(triangle_angle)*distance;
         auto x = sin(triangle_angle)*distance;
         
@@ -137,17 +145,8 @@ float Level::get_line_height_factor(int x, int view_width)
     
     pos.angle += angle;
     
-    if (pos.angle > 360)
-    {
-        pos.angle -= 360;
-    }
-    else if (pos.angle < 0)
-    {
-        pos.angle += 360;
-    }
-    
     auto distance = 0;
-    const auto distance_step = 100;
+    const auto distance_step = 50;
     auto am_in_wall = false;
     
     while (in_map(pos))
@@ -161,12 +160,20 @@ float Level::get_line_height_factor(int x, int view_width)
         distance += distance_step;
         pos += distance_step;
     }
+    
+    /*Problem here being that we don't check on the grid lines, but
+     check whether someting is inside the wall, so lines to the same wall can have
+     different distances if they go further. Then when we correct everything 
+     gets a little worse.*/
+    
+    //Correct for the angle of the ray (get y component of the vector basically)
+    //distance *= cos(to_radians(angle));
 
     /*The the scale of the object falls off with distance. Assuming at 0 distance from
      the player the wall is as high as the screen.*/
     if (am_in_wall)
     {
-        return 1/(float(distance)/100);
+        return 1/(float(distance)/50);
     }
     return 0;
 }
