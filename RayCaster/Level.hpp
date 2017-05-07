@@ -167,12 +167,13 @@ struct Level
     int m_map_height;
     LimitedAngle m_player_fov;
     
-    float get_line_height_factor(int x, int view_width);
-    
     std::array<int, MAP_SIDE*MAP_SIDE> m_tiles;
     int m_tile_side;
     
 private:
+    float get_line_height_factor(int x, int view_width);
+    float get_line_height_factor_using_gridlines(int x, int view_width);
+    
     const int m_turn_amount;
     const int m_move_amount;
 };
