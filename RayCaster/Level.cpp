@@ -133,6 +133,12 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         change_grid_angle -= 90;
     }
     
+    if ((pos.angle > 270) ||
+        ((pos.angle > 90) && (pos.angle < 180)))
+    {
+        change_grid_angle = 90 - change_grid_angle;
+    }
+    
     //Dont bother checking if it goes in a straight line horiz (unless you're directly on the line?)
     if ((pos.angle.GetValue() != 90) && (pos.angle.GetValue() != 270))
     {
@@ -144,89 +150,50 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         }
         auto x_to_next_gridline = y_to_next_gridline * tan(to_radians(change_grid_angle));
         
-        if (((horiz_pos.angle >= 90) && (horiz_pos.angle < 180)) ||
-            (horiz_pos.angle >= 270))
-        {
-            std::swap(x_to_next_gridline, y_to_next_gridline);
-        }
-        
-        if (!going_up_angle)
-        {
-            y_to_next_gridline *= -1;
-        }
-        if (!going_right_angle)
-        {
-            x_to_next_gridline *= -1;
-        }
-        
-        horiz_pos.x += x_to_next_gridline;
-        horiz_pos.y += y_to_next_gridline;
+        //Work out the hypotinuse of the triangle that that describes
+        auto vect_distance = sqrt(pow(y_to_next_gridline, 2) + pow(x_to_next_gridline, 2));
+        horiz_pos += vect_distance;
         
         //From here we need to move 1 grid cell each Y and some X each time
         double change_in_y = m_tile_side;
-        auto change_in_x = m_tile_side * tan(to_radians(change_grid_angle));
+        auto change_in_x = change_in_y * tan(to_radians(change_grid_angle));
         
-        /*if (((horiz_pos.angle >= 90) && (horiz_pos.angle < 180)) ||
-            (horiz_pos.angle >= 270))
-        {
-            std::swap(change_in_x, change_in_y);
-        }*/
-        
-        if (!going_up_angle)
-        {
-            change_in_y *= -1;
-        }
-        if (!going_right_angle)
-        {
-            change_in_x *= -1;
-        }
+        auto grid_distance = sqrt(pow(change_in_y, 2) + pow(change_in_x, 2));
         
         while (in_map(horiz_pos))
         {
             points_checked.push_back(SDL_Point{horiz_pos.x, m_map_height - horiz_pos.y});
             
-            //Might need adjusting depending on whether we're going up or down?
-            /*if (grid_in_wall(horiz_pos, true))
+            if (grid_in_wall(horiz_pos, true))
             {
                 found_horizontal = true;
                 break;
-            }*/
+            }
             
-            horiz_pos.x += change_in_x;
-            horiz_pos.y += change_in_y;
+            horiz_pos += grid_distance;
         }
     }
     
     //Check vertical intersections
-    /*if ((pos.angle.GetValue() != 0) && (pos.angle.GetValue() != 180))
+    if ((pos.angle.GetValue() != 0) && (pos.angle.GetValue() != 180))
     {
         auto x_to_next_gridline = vert_pos.x % m_tile_side;
         if (going_right_angle && (x_to_next_gridline != 0))
         {
             x_to_next_gridline = m_tile_side - x_to_next_gridline;
         }
-        auto y_to_next_gridline = x_to_next_gridline*tan(to_radians(change_grid_angle));
+        auto y_to_next_gridline = x_to_next_gridline / tan(to_radians(change_grid_angle));
         
-        if (!going_right_angle)
-        {
-            x_to_next_gridline *= -1;
-        }
-        if (!going_up_angle)
-        {
-            y_to_next_gridline *= -1;
-        }
+        auto vect_distance = sqrt(pow(y_to_next_gridline, 2) + pow(x_to_next_gridline, 2));
+        horiz_pos += vect_distance;
         
-        vert_pos.x += x_to_next_gridline;
-        vert_pos.y += y_to_next_gridline;
+        vert_pos += vect_distance;
         
         //Same distance between each grid line once we've found the 1st one
-        auto change_in_x = going_right_angle ? m_tile_side : -m_tile_side;
-        auto change_in_y = m_tile_side / tan(to_radians(change_grid_angle));
+        auto change_in_x = m_tile_side;
+        auto change_in_y = change_in_x / tan(to_radians(change_grid_angle));
         
-        if (!going_up_angle)
-        {
-            change_in_y *= -1;
-        }
+        auto grid_distance = sqrt(pow(change_in_y, 2) + pow(change_in_x, 2));
         
         while (in_map(vert_pos))
         {
@@ -238,10 +205,9 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
                 break;
             }
             
-            vert_pos.x += change_in_x;
-            vert_pos.y += change_in_y;
+            vert_pos += grid_distance;
         }
-    }*/
+    }
     
     if (found_vertical || found_horizontal)
     {
