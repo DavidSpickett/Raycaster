@@ -77,14 +77,49 @@ namespace
         
         return sqrt((pow(x_change, 2) + pow(y_change, 2)));
     }
+
+    int wrap_to_tile(int pos, int tile_side)
+    {
+        auto remainder = pos % tile_side;
+        auto min = pos - remainder;
+        auto half_way = min+(tile_side/2);
+        
+        if (pos >= half_way)
+        {
+            pos = pos - remainder + tile_side;
+        }
+        else
+        {
+            pos -= remainder;
+        }
+        
+        return pos;
+    }
 }
 
 bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
 {
+    /*Because of rounding errors sometimes the positions aren't exactly on the 
+     gridline which presents a problem when trying to find the righ cell to check.
+     Luckily we know what one of the components *should* be.
+     */
+    if (horiz_gridlines)
+    {
+        if (pos.y % m_tile_side)
+        {
+            pos.y = wrap_to_tile(pos.y, m_tile_side);
+        }
+    }
+    else
+    {
+        if (pos.x % m_tile_side)
+        {
+            pos.x = wrap_to_tile(pos.x, m_tile_side);
+        }
+    }
+    
     auto x = pos.x/m_tile_side;
     auto y = pos.y/m_tile_side;
-    
-    y = MAP_SIDE - y;
     
     //One of these will be an exact multiple of tile side
     if (horiz_gridlines)
@@ -92,7 +127,7 @@ bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
         //We're checking horizontal grid lines
         if ((pos.angle > 90) && (pos.angle < 180))
         {
-            y -= 1;
+            y += 1;
         }
     }
     else
@@ -104,6 +139,10 @@ bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
         }
     }
     
+    //Also -1 here?
+    y = MAP_SIDE - y;
+    
+    //Y co-ord is inverted for map data
     return m_tiles[x+(y*MAP_SIDE)] == 1;
 }
 
