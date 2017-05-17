@@ -9,6 +9,12 @@ const auto fov_change_amount = 10;
 
 int main(int argc, char* argv[])
 {
+    
+    /* TODO: For the map we could use the 'xxd' tool to make a header file with the string
+     and then use that and constexpr to init the level class and array sizes.
+    
+    To do lighting, trace rays from each point hit on the wall, out to the lights.*/
+    
     SDLApp app(win_width, win_height);
     Level level;
     auto video_mode = 0;
@@ -83,7 +89,7 @@ int main(int argc, char* argv[])
                 break;
         }
         
-        app.draw_minimap(level);
+        app.draw_minimap(level, heights);
         app.draw_to_screen();
         
         auto now = SDL_GetTicks();

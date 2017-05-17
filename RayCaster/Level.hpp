@@ -15,6 +15,12 @@
 #include <SDL2/SDL.h>
 #include "Position.hpp"
 
+struct line_height
+{
+    float height;
+    std::vector<SDL_Point> points_checked;
+};
+
 const auto MAP_SIDE = 6;
 
 struct Level
@@ -36,11 +42,12 @@ struct Level
         m_map_height = MAP_SIDE*m_tile_side;
     }
     
-    std::vector<float> get_line_heights(int view_width);
+    std::vector<line_height> get_line_heights(int view_width);
     Position m_player_pos;
     
     bool in_map(Position);
     bool in_wall(Position);
+    bool grid_in_wall(Position pos, bool horiz_gridlines);
     
     void apply_movement(const uint8_t* state);
     
@@ -52,8 +59,8 @@ struct Level
     int m_tile_side;
     
 private:
-    float get_line_height_factor(int x, int view_width);
-    float get_line_height_factor_using_gridlines(int x, int view_width);
+    line_height get_line_height_factor(int x, int view_width);
+    line_height get_line_height_factor_using_gridlines(int x, int view_width);
     
     const int m_turn_amount;
     const int m_move_amount;

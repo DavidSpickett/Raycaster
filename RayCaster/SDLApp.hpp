@@ -33,10 +33,10 @@ public:
         }
     }
     
-    void draw_lines_as_polygons(std::vector<float> height_factors);
-    void draw_lines_from_points(std::vector<float> height_factors);
-    void draw_line_heights(std::vector<float> height_factors);
-    void draw_minimap(const Level& level);
+    void draw_lines_as_polygons(std::vector<line_height> height_factors);
+    void draw_lines_from_points(std::vector<line_height> height_factors);
+    void draw_line_heights(std::vector<line_height> height_factors);
+    void draw_minimap(const Level& level, const std::vector<line_height>& heights);
     void draw_to_screen();
 
 private:

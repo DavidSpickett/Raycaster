@@ -47,14 +47,14 @@ void Level::apply_movement(const uint8_t* state)
     }
 }
 
-std::vector<float> Level::get_line_heights(int view_width)
+std::vector<line_height> Level::get_line_heights(int view_width)
 {
     //View width is the screenwidth.
-    std::vector<float> ret;
+    std::vector<line_height> ret;
     for (int x=0; x != view_width; ++x)
     {
-        ret.push_back(get_line_height_factor(x, view_width));
-        //ret.push_back(get_line_height_factor_using_gridlines(x, view_width));
+        //ret.push_back(get_line_height_factor(x, view_width));
+        ret.push_back(get_line_height_factor_using_gridlines(x, view_width));
     }
     return ret;
 }
@@ -79,7 +79,35 @@ namespace
     }
 }
 
-float Level::get_line_height_factor_using_gridlines(int x, int view_width)
+bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
+{
+    auto x = pos.x/m_tile_side;
+    auto y = pos.y/m_tile_side;
+    
+    y = MAP_SIDE - y;
+    
+    //One of these will be an exact multiple of tile side
+    if (horiz_gridlines)
+    {
+        //We're checking horizontal grid lines
+        if ((pos.angle > 90) && (pos.angle < 180))
+        {
+            y -= 1;
+        }
+    }
+    else
+    {
+        //We're checking vertical gridlines
+        if (pos.angle >180)
+        {
+            x -= 1;
+        }
+    }
+    
+    return m_tiles[x+(y*MAP_SIDE)] == 1;
+}
+
+line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
 {
     Position pos(m_player_pos);
     
@@ -93,14 +121,21 @@ float Level::get_line_height_factor_using_gridlines(int x, int view_width)
     
     Position horiz_pos(pos);
     Position vert_pos(pos);
+    std::vector<SDL_Point> points_checked;
     
     //First check collision with horizontal grid lines
     auto going_up_angle = (pos.angle.GetValue() < 90) || (pos.angle.GetValue() > 270);
     auto going_right_angle = pos.angle.GetValue() < 180;
     auto change_grid_angle = pos.angle.GetValue();
+    
     while (change_grid_angle >= 90)
     {
         change_grid_angle -= 90;
+    }
+    
+    if (pos.angle.GetValue() > 270)
+    {
+        change_grid_angle = 90 - change_grid_angle;
     }
     
     //Dont bother checking if it goes in a straight line horiz (unless you're directly on the line?)
@@ -108,11 +143,11 @@ float Level::get_line_height_factor_using_gridlines(int x, int view_width)
     {
         //Move until we hit a horizontal line
         auto y_to_next_gridline = horiz_pos.y % m_tile_side;
-        if (going_up_angle)
+        if (going_up_angle && (y_to_next_gridline != 0))
         {
             y_to_next_gridline = m_tile_side - y_to_next_gridline;
         }
-        auto x_to_next_gridline = y_to_next_gridline / tan(to_radians(change_grid_angle));
+        auto x_to_next_gridline = y_to_next_gridline * tan(to_radians(change_grid_angle));
         
         if (!going_right_angle)
         {
@@ -128,12 +163,19 @@ float Level::get_line_height_factor_using_gridlines(int x, int view_width)
         
         //From here we need to move 1 grid cell each Y and some X each time
         auto change_in_y = going_up_angle ? m_tile_side : -m_tile_side;
-        auto change_in_x = m_tile_side / tan(to_radians(change_grid_angle));
+        auto change_in_x = m_tile_side * tan(to_radians(change_grid_angle));
+        
+        if (!going_up_angle)
+        {
+            change_in_x *= -1;
+        }
         
         while (in_map(horiz_pos))
         {
+            points_checked.push_back(SDL_Point{horiz_pos.x, m_map_height - horiz_pos.y});
+            
             //Might need adjusting depending on whether we're going up or down?
-            if (in_wall(horiz_pos))
+            if (grid_in_wall(horiz_pos, true))
             {
                 found_horizontal = true;
                 break;
@@ -148,7 +190,7 @@ float Level::get_line_height_factor_using_gridlines(int x, int view_width)
     if ((pos.angle.GetValue() != 0) && (pos.angle.GetValue() != 180))
     {
         auto x_to_next_gridline = vert_pos.x % m_tile_side;
-        if (going_right_angle)
+        if (going_right_angle && (x_to_next_gridline != 0))
         {
             x_to_next_gridline = m_tile_side - x_to_next_gridline;
         }
@@ -170,9 +212,16 @@ float Level::get_line_height_factor_using_gridlines(int x, int view_width)
         auto change_in_x = going_right_angle ? m_tile_side : -m_tile_side;
         auto change_in_y = m_tile_side / tan(to_radians(change_grid_angle));
         
+        if (!going_up_angle)
+        {
+            change_in_y *= -1;
+        }
+        
         while (in_map(vert_pos))
         {
-            if (in_wall(vert_pos))
+            points_checked.push_back(SDL_Point{vert_pos.x, m_map_height - vert_pos.y});
+            
+            if (grid_in_wall(vert_pos, false))
             {
                 found_vertical = true;
                 break;
@@ -185,35 +234,37 @@ float Level::get_line_height_factor_using_gridlines(int x, int view_width)
     
     if (found_vertical || found_horizontal)
     {
-        auto horiz_distance = -1;
-        auto vert_distance = -1;
+        auto horiz_distance = found_horizontal ? point_distance(horiz_pos, m_player_pos) : -1;
+        auto vert_distance = found_vertical ? point_distance(vert_pos, m_player_pos) : -1;
         
-        if (found_vertical)
+        auto distance = 0;
+        if (
+            ((found_horizontal && found_vertical) && (horiz_distance < vert_distance)) ||
+            !found_vertical)
         {
-            vert_distance = point_distance(vert_pos, m_player_pos);
+            //Use horizontal projection distance
+            distance = horiz_distance;
         }
-        if (found_horizontal)
+        else
         {
-            horiz_distance = point_distance(horiz_pos, m_player_pos);
+            distance = vert_distance;
         }
         
-        bool use_horizontal = (horiz_distance < vert_distance) || (vert_distance == -1);
-        auto distance = use_horizontal ? horiz_distance : vert_distance;
-        
-        return 1/(float(distance)/100);
+        return line_height{1/(float(distance)/100), points_checked};;
     }
     else
     {
         //Ended up off of the map somewhere.
-        return 0;
+        return line_height{0, points_checked};
     }
 }
 
-float Level::get_line_height_factor(int x, int view_width)
+line_height Level::get_line_height_factor(int x, int view_width)
 {
     /*In steps of some number of pixels take a line out from this X point on the player's
     view and see what we collide with.*/
     Position pos(m_player_pos);
+    std::vector<SDL_Point> points_checked;
     
     //Each ray comes from the player at a slightly different angle according to the FOV.
     double angle = - (m_player_fov.GetValue()/2) + ((m_player_fov.GetValue()/view_width)*x);
@@ -221,11 +272,13 @@ float Level::get_line_height_factor(int x, int view_width)
     pos.angle += angle;
     
     auto distance = 0;
-    const auto distance_step = 50;
+    const auto distance_step = 10;
     auto am_in_wall = false;
     
     while (in_map(pos))
     {
+        points_checked.push_back(SDL_Point{pos.x, m_map_height-pos.y});
+        
         if (in_wall(pos))
         {
             am_in_wall = true;
@@ -248,9 +301,9 @@ float Level::get_line_height_factor(int x, int view_width)
      the player the wall is as high as the screen.*/
     if (am_in_wall)
     {
-        return 1/(float(distance)/50);
+        return line_height{1/(float(distance)/50), points_checked};
     }
-    return 0;
+    return line_height{0, points_checked};
 }
 
 bool Level::in_map(Position pos)

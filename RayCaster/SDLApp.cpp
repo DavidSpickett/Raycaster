@@ -43,7 +43,7 @@ SDLApp::SDLApp(int width, int height):
     m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 }
 
-void SDLApp::draw_minimap(const Level& level)
+void SDLApp::draw_minimap(const Level& level, const std::vector<line_height>& heights)
 {
     //Walls and floor
     for (auto x=0; x != MAP_SIDE; ++x)
@@ -120,6 +120,18 @@ void SDLApp::draw_minimap(const Level& level)
     player.w = 2;
     player.h = 2;
     SDL_RenderDrawRect(m_renderer, &player);
+    
+    SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
+    std::for_each(heights.begin(), heights.end(), [=](const line_height& lh)
+    {
+        std::for_each(lh.points_checked.begin(), lh.points_checked.end(), [=](const SDL_Point& point)
+        {
+            SDL_RenderDrawPoint(m_renderer,
+                                (double(point.x)/level.m_tile_side)*m_minimap_cell_size,
+                                (double(point.y)/level.m_tile_side*m_minimap_cell_size)
+                                );
+        });
+    });
 }
 
 void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)
@@ -161,7 +173,7 @@ void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)
         end_heading.x, end_heading.y);
 }
 
-void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
+void SDLApp::draw_lines_as_polygons(std::vector<line_height> height_factors)
 {
     clear();
     SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
@@ -176,7 +188,7 @@ void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
     for (auto x=0; x < height_factors.size(); ++x)
     {
         //Divide by two for each side of the horizon line
-        int line_height = (m_height*height_factors[x])/2;
+        int line_height = (m_height*height_factors[x].height)/2;
         
         if (line_height && (x != (height_factors.size()-1)))
         {
@@ -305,7 +317,7 @@ void SDLApp::draw_lines_as_polygons(std::vector<float> height_factors)
     
 }
 
-void SDLApp::draw_lines_from_points(std::vector<float> height_factors)
+void SDLApp::draw_lines_from_points(std::vector<line_height> height_factors)
 {
     clear();
     SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
@@ -317,7 +329,7 @@ void SDLApp::draw_lines_from_points(std::vector<float> height_factors)
     
     for (auto x=0; x != height_factors.size(); ++x)
     {
-        int line_height = (m_height*height_factors[x])/2;
+        int line_height = (m_height*height_factors[x].height)/2;
         
         if (line_height != 0)
         {
@@ -373,19 +385,20 @@ void SDLApp::draw_lines_from_points(std::vector<float> height_factors)
     });
 }
 
-void SDLApp::draw_line_heights(std::vector<float> height_factors)
+void SDLApp::draw_line_heights(std::vector<line_height> height_factors)
 {
     clear();
+    
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
 
     auto midscreen = m_height/2;
     for (auto x=0; x != height_factors.size(); ++x)
     {
         // Divide by 2 because we draw above and below the middle
-        int line_height = (m_height*height_factors[x])/2;
+        int line_height = (m_height*height_factors[x].height)/2;
         
         // Fade out with distance
-        auto alpha = std::max(float(10), 255*height_factors[x]);
+        auto alpha = std::max(float(10), 255*height_factors[x].height);
         SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, alpha);
         
         if (line_height)
