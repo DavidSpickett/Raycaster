@@ -122,7 +122,7 @@ void SDLApp::draw_minimap(const Level& level, const std::vector<line_height>& he
     SDL_RenderDrawRect(m_renderer, &player);
     
     SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
-    std::for_each(heights.begin(), heights.end(), [=](const line_height& lh)
+    /*std::for_each(heights.begin(), heights.end(), [=](const line_height& lh)
     {
         std::for_each(lh.points_checked.begin(), lh.points_checked.end(), [=](const SDL_Point& point)
         {
@@ -131,7 +131,15 @@ void SDLApp::draw_minimap(const Level& level, const std::vector<line_height>& he
                                 (double(point.y)/level.m_tile_side*m_minimap_cell_size)
                                 );
         });
-    });
+    });*/
+    
+    std::for_each(heights[0].points_checked.begin(), heights[0].points_checked.end(), [=](const SDL_Point& point)
+      {
+          SDL_RenderDrawPoint(m_renderer,
+                              (double(point.x)/level.m_tile_side)*m_minimap_cell_size,
+                              (double(point.y)/level.m_tile_side*m_minimap_cell_size)
+                              );
+      });
 }
 
 void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)

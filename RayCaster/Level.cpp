@@ -133,39 +133,50 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         change_grid_angle -= 90;
     }
     
-    if (pos.angle.GetValue() > 270)
-    {
-        change_grid_angle = 90 - change_grid_angle;
-    }
-    
     //Dont bother checking if it goes in a straight line horiz (unless you're directly on the line?)
     if ((pos.angle.GetValue() != 90) && (pos.angle.GetValue() != 270))
     {
         //Move until we hit a horizontal line
-        auto y_to_next_gridline = horiz_pos.y % m_tile_side;
+        double y_to_next_gridline = horiz_pos.y % m_tile_side;
         if (going_up_angle && (y_to_next_gridline != 0))
         {
             y_to_next_gridline = m_tile_side - y_to_next_gridline;
         }
         auto x_to_next_gridline = y_to_next_gridline * tan(to_radians(change_grid_angle));
         
-        if (!going_right_angle)
+        if (((horiz_pos.angle >= 90) && (horiz_pos.angle < 180)) ||
+            (horiz_pos.angle >= 270))
         {
-            x_to_next_gridline *= -1;
+            std::swap(x_to_next_gridline, y_to_next_gridline);
         }
+        
         if (!going_up_angle)
         {
             y_to_next_gridline *= -1;
+        }
+        if (!going_right_angle)
+        {
+            x_to_next_gridline *= -1;
         }
         
         horiz_pos.x += x_to_next_gridline;
         horiz_pos.y += y_to_next_gridline;
         
         //From here we need to move 1 grid cell each Y and some X each time
-        auto change_in_y = going_up_angle ? m_tile_side : -m_tile_side;
+        double change_in_y = m_tile_side;
         auto change_in_x = m_tile_side * tan(to_radians(change_grid_angle));
         
+        /*if (((horiz_pos.angle >= 90) && (horiz_pos.angle < 180)) ||
+            (horiz_pos.angle >= 270))
+        {
+            std::swap(change_in_x, change_in_y);
+        }*/
+        
         if (!going_up_angle)
+        {
+            change_in_y *= -1;
+        }
+        if (!going_right_angle)
         {
             change_in_x *= -1;
         }
@@ -175,11 +186,11 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
             points_checked.push_back(SDL_Point{horiz_pos.x, m_map_height - horiz_pos.y});
             
             //Might need adjusting depending on whether we're going up or down?
-            if (grid_in_wall(horiz_pos, true))
+            /*if (grid_in_wall(horiz_pos, true))
             {
                 found_horizontal = true;
                 break;
-            }
+            }*/
             
             horiz_pos.x += change_in_x;
             horiz_pos.y += change_in_y;
@@ -187,7 +198,7 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
     }
     
     //Check vertical intersections
-    if ((pos.angle.GetValue() != 0) && (pos.angle.GetValue() != 180))
+    /*if ((pos.angle.GetValue() != 0) && (pos.angle.GetValue() != 180))
     {
         auto x_to_next_gridline = vert_pos.x % m_tile_side;
         if (going_right_angle && (x_to_next_gridline != 0))
@@ -230,7 +241,7 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
             vert_pos.x += change_in_x;
             vert_pos.y += change_in_y;
         }
-    }
+    }*/
     
     if (found_vertical || found_horizontal)
     {
