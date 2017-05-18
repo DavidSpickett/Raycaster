@@ -99,16 +99,31 @@ namespace
 
 bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
 {
-    /*Because of rounding errors sometimes the positions aren't exactly on the 
-     gridline which presents a problem when trying to find the righ cell to check.
-     Luckily we know what one of the components *should* be.
-     */
+    //Got to work out how this thing converts co-ordinates.!
+    
     if (horiz_gridlines)
     {
+        /*
+         Sometimes the 'known' co-ord isn't quite on a gridline due
+         to rounding so we change it slightly. e.g. 1999 -> 2000 
+        */
         if (pos.y % m_tile_side)
         {
             pos.y = wrap_to_tile(pos.y, m_tile_side);
         }
+        
+        auto x = pos.x / m_tile_side;
+        auto y = pos.y / m_tile_side;
+        
+        //Going up
+        if ((pos.angle > 270) || (pos.angle < 90))
+        {
+            y += 1;
+        }
+        
+        y = MAP_SIDE - y;
+        
+        return m_tiles[x+(y*MAP_SIDE)] == 1;
     }
     else
     {
@@ -116,34 +131,28 @@ bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
         {
             pos.x = wrap_to_tile(pos.x, m_tile_side);
         }
-    }
-    
-    auto x = pos.x/m_tile_side;
-    auto y = pos.y/m_tile_side;
-    
-    //One of these will be an exact multiple of tile side
-    if (horiz_gridlines)
-    {
-        //We're checking horizontal grid lines
-        if ((pos.angle > 90) && (pos.angle < 180))
-        {
-            y += 1;
-        }
-    }
-    else
-    {
-        //We're checking vertical gridlines
-        if (pos.angle >180)
+        
+        auto x = pos.x / m_tile_side;
+        auto y = pos.y / m_tile_side;
+        
+        //Going right
+        if (pos.angle > 180)
         {
             x -= 1;
         }
+        
+        //Going up
+        //if ((pos.angle > 270) || (pos.angle < 90))
+        //{
+            y += 1;
+        //}
+        
+        y = MAP_SIDE - y;
+        
+        return m_tiles[x+(y*MAP_SIDE)] == 1;
     }
     
-    //Also -1 here?
-    y = MAP_SIDE - y;
-    
-    //Y co-ord is inverted for map data
-    return m_tiles[x+(y*MAP_SIDE)] == 1;
+    return false;
 }
 
 line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
@@ -224,8 +233,6 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         auto y_to_next_gridline = x_to_next_gridline / tan(to_radians(change_grid_angle));
         
         auto vect_distance = sqrt(pow(y_to_next_gridline, 2) + pow(x_to_next_gridline, 2));
-        horiz_pos += vect_distance;
-        
         vert_pos += vect_distance;
         
         //Same distance between each grid line once we've found the 1st one
@@ -254,6 +261,7 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         auto vert_distance = found_vertical ? point_distance(vert_pos, m_player_pos) : -1;
         
         auto distance = 0;
+        bool vertical_intersect = false;
         if (
             ((found_horizontal && found_vertical) && (horiz_distance < vert_distance)) ||
             !found_vertical)
@@ -264,14 +272,18 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         else
         {
             distance = vert_distance;
+            vertical_intersect = true;
         }
         
-        return line_height{1/(float(distance)/100), points_checked};;
+        //Correct perspective
+        distance *= cos(to_radians(angle));
+        
+        return line_height(1/(float(distance)/100), vertical_intersect, points_checked);
     }
     else
     {
         //Ended up off of the map somewhere.
-        return line_height{0, points_checked};
+        return line_height(points_checked);
     }
 }
 
@@ -317,9 +329,9 @@ line_height Level::get_line_height_factor(int x, int view_width)
      the player the wall is as high as the screen.*/
     if (am_in_wall)
     {
-        return line_height{1/(float(distance)/50), points_checked};
+        return line_height(1/(float(distance)/50), false, points_checked);
     }
-    return line_height{0, points_checked};
+    return line_height(points_checked);
 }
 
 bool Level::in_map(Position pos)
