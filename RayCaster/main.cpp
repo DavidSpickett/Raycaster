@@ -2,11 +2,6 @@
 #include "SDLApp.hpp"
 #include "Level.hpp"
 
-const auto win_height = 480;
-const auto win_width  = 640;
-const auto tick_interval = 60;
-const auto fov_change_amount = 10;
-
 int main(int argc, char* argv[])
 {
     /*
@@ -23,11 +18,22 @@ int main(int argc, char* argv[])
      movement there.
      
      - Allow a map that is not square. In other words have two map side values.
+     
+     - Somehow we get vertical intersections when looking off of the right side of the map.
+     (somehow it's tracing the gridline down?)
     */
+    
+    auto video_mode = 0;
+    const std::array<std::string, 3> video_modes{"stripes", "points as lines", "points as shapes"};
+    
+    const auto win_height = 480;
+    const auto win_width  = 640;
+    const auto tick_interval = 60;
+    const auto fov_change_amount = 10;
     
     SDLApp app(win_width, win_height);
     Level level;
-    auto video_mode = 0;
+    
     
     SDL_Event event;
     auto run = true;
@@ -63,12 +69,12 @@ int main(int argc, char* argv[])
                     else if (state[SDL_SCANCODE_EQUALS])
                     {
                         video_mode = video_mode == 2 ? 0 : video_mode+1;
-                        printf("Video mode %d\n", video_mode);
+                        printf("Video mode %d (%s)\n", video_mode, video_modes[video_mode].c_str());
                     }
                     else if (state[SDL_SCANCODE_MINUS])
                     {
                         video_mode = video_mode == 0 ? 2 : video_mode-1;
-                        printf("Video mode %d\n", video_mode);
+                        printf("Video mode %d (%s)\n", video_mode, video_modes[video_mode].c_str());
                     }
                     else if (state[SDL_SCANCODE_BACKSPACE])
                     {
