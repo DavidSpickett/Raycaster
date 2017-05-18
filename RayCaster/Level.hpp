@@ -40,13 +40,14 @@ struct Level
                 0,0,0,0,0,0,
                 0,1,0,0,0,0,
                 1,0,0,0,0,1,
-                0,1,0,0,1,1},
+                0,1,1,0,1,1},
         m_tile_side(500),
         m_player_pos(2000, 1500, 0),
         m_player_fov(60),
         m_turn_amount(15),
         m_move_amount(20),
-        m_distance_scale(100)
+        m_distance_scale(100),
+        m_gridline_projection(true)
     {
         m_map_width = MAP_SIDE*m_tile_side;
         m_map_height = MAP_SIDE*m_tile_side;
@@ -63,6 +64,7 @@ struct Level
     
     std::array<int, MAP_SIDE*MAP_SIDE> m_tiles;
     int m_tile_side;
+    bool m_gridline_projection;
     
 private:
     float get_scaled_height_factor(double distance);

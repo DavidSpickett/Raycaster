@@ -9,11 +9,21 @@ const auto fov_change_amount = 10;
 
 int main(int argc, char* argv[])
 {
-    
-    /* TODO: For the map we could use the 'xxd' tool to make a header file with the string
-     and then use that and constexpr to init the level class and array sizes.
-    
-    To do lighting, trace rays from each point hit on the wall, out to the lights.*/
+    /*
+    TODO:
+     
+     - To do lighting, trace rays from each point hit on the wall, out to each lights.
+
+     - To do textures, work out the x co-ord of the intersection into the cell side and use that
+     as your X within the cell side texture.
+     
+     - You can walk through the corners of two wall cells. Fix.
+     
+     - You cannot scrub along a wall if you're facing into it. At least allow one dir of 
+     movement there.
+     
+     - Allow a map that is not square. In other words have two map side values.
+    */
     
     SDLApp app(win_width, win_height);
     Level level;
@@ -43,10 +53,12 @@ int main(int argc, char* argv[])
                     else if (state[SDL_SCANCODE_LEFTBRACKET])
                     {
                         level.m_player_fov += fov_change_amount;
+                        printf("Player FOV %f degrees\n", level.m_player_fov.GetValue());
                     }
                     else if (state[SDL_SCANCODE_RIGHTBRACKET])
                     {
                         level.m_player_fov -= fov_change_amount;
+                        printf("Player FOV %f degrees\n", level.m_player_fov.GetValue());
                     }
                     else if (state[SDL_SCANCODE_EQUALS])
                     {
@@ -57,6 +69,18 @@ int main(int argc, char* argv[])
                     {
                         video_mode = video_mode == 0 ? 2 : video_mode-1;
                         printf("Video mode %d\n", video_mode);
+                    }
+                    else if (state[SDL_SCANCODE_BACKSPACE])
+                    {
+                        level.m_gridline_projection = !level.m_gridline_projection;
+                        if (level.m_gridline_projection)
+                        {
+                            printf("Using gridline projection.\n");
+                        }
+                        else
+                        {
+                            printf("Using stepped projection.\n");
+                        }
                     }
                 }
             }

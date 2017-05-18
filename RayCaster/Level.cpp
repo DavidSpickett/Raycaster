@@ -8,6 +8,7 @@
 
 #include "Level.hpp"
 #include <math.h>
+#include <limits>
 
 void Level::apply_movement(const uint8_t* state)
 {
@@ -53,8 +54,14 @@ std::vector<line_height> Level::get_line_heights(int view_width)
     std::vector<line_height> ret;
     for (int x=0; x != view_width; ++x)
     {
-        //ret.push_back(get_line_height_factor(x, view_width));
-        ret.push_back(get_line_height_factor_using_gridlines(x, view_width));
+        if (m_gridline_projection)
+        {
+            ret.push_back(get_line_height_factor_using_gridlines(x, view_width));
+        }
+        else
+        {
+            ret.push_back(get_line_height_factor(x, view_width));
+        }
     }
     return ret;
 }
@@ -95,6 +102,22 @@ namespace
         
         return pos;
     }
+}
+
+bool Level::in_map(Position pos)
+{
+    return (pos.x >= 0) && (pos.y >= 0) && (pos.x < m_map_width) && (pos.y < m_map_height);
+}
+
+bool Level::in_wall(Position pos)
+{
+    pos.x /= m_tile_side;
+    pos.y /= m_tile_side;
+    
+    //Our map data is laid out to look like a normal map but our y co-ord is inverted.
+    pos.y = MAP_SIDE - pos.y - 1;
+    
+    return m_tiles[pos.x+(pos.y*MAP_SIDE)] == 1;
 }
 
 bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
@@ -157,9 +180,9 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
     Position pos(m_player_pos);
     
     //Each ray comes from the player at a different angle depdning on its X
-    double angle = - (m_player_fov.GetValue()/2) + ((m_player_fov.GetValue()/view_width)*x);
+    double angle_from_player_heading = - (m_player_fov.GetValue()/2) + ((m_player_fov.GetValue()/view_width)*x);
     
-    pos.angle += angle;
+    pos.angle += angle_from_player_heading;
     
     auto found_horizontal = false;
     auto found_vertical = false;
@@ -264,14 +287,21 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
     
     if (found_vertical || found_horizontal)
     {
-        auto horiz_distance = found_horizontal ? point_distance(horiz_pos, m_player_pos) : -1;
-        auto vert_distance = found_vertical ? point_distance(vert_pos, m_player_pos) : -1;
+        auto horiz_distance = std::numeric_limits<double>::max();
+        auto vert_distance = std::numeric_limits<double>::max();
+        
+        if (found_horizontal)
+        {
+            horiz_distance = point_distance(horiz_pos, m_player_pos);
+        }
+        if (found_vertical)
+        {
+            vert_distance = point_distance(vert_pos, m_player_pos);
+        }
         
         auto distance = 0;
         bool vertical_intersect = false;
-        if (
-            ((found_horizontal && found_vertical) && (horiz_distance < vert_distance)) ||
-            !found_vertical)
+        if (horiz_distance < vert_distance)
         {
             //Use horizontal projection distance
             distance = horiz_distance;
@@ -283,7 +313,7 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         }
         
         //Correct perspective
-        distance *= cos(to_radians(angle));
+        distance *= cos(to_radians(angle_from_player_heading));
         return line_height(get_scaled_height_factor(distance), vertical_intersect, points_checked);
     }
     else
@@ -330,20 +360,4 @@ line_height Level::get_line_height_factor(int x, int view_width)
         return line_height(get_scaled_height_factor(distance), false, points_checked);
     }
     return line_height(points_checked);
-}
-
-bool Level::in_map(Position pos)
-{
-    return (pos.x >= 0) && (pos.y >= 0) && (pos.x < m_map_width) && (pos.y < m_map_height);
-}
-
-bool Level::in_wall(Position pos)
-{
-    pos.x /= m_tile_side;
-    pos.y /= m_tile_side;
-    
-    //Our map data is laid out to look like a normal map but our y co-ord is inverted.
-    pos.y = MAP_SIDE - pos.y - 1;
-    
-    return m_tiles[pos.x+(pos.y*MAP_SIDE)] == 1;
 }
