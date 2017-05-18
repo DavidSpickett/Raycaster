@@ -39,13 +39,14 @@ struct Level
                 0,1,1,1,0,0,
                 0,0,0,0,0,0,
                 0,1,0,0,0,0,
-                0,0,0,0,0,1,
+                1,0,0,0,0,1,
                 0,1,0,0,1,1},
         m_tile_side(500),
         m_player_pos(2000, 1500, 0),
         m_player_fov(60),
-        m_turn_amount(10),
-        m_move_amount(10)
+        m_turn_amount(15),
+        m_move_amount(20),
+        m_distance_scale(100)
     {
         m_map_width = MAP_SIDE*m_tile_side;
         m_map_height = MAP_SIDE*m_tile_side;
@@ -53,10 +54,6 @@ struct Level
     
     std::vector<line_height> get_line_heights(int view_width);
     Position m_player_pos;
-    
-    bool in_map(Position);
-    bool in_wall(Position);
-    bool grid_in_wall(Position pos, bool horiz_gridlines);
     
     void apply_movement(const uint8_t* state);
     
@@ -68,9 +65,15 @@ struct Level
     int m_tile_side;
     
 private:
+    float get_scaled_height_factor(double distance);
+    bool in_map(Position);
+    bool in_wall(Position);
+    bool grid_in_wall(Position pos, bool horiz_gridlines);
+    
     line_height get_line_height_factor(int x, int view_width);
     line_height get_line_height_factor_using_gridlines(int x, int view_width);
     
+    const int m_distance_scale;
     const int m_turn_amount;
     const int m_move_amount;
 };

@@ -99,31 +99,19 @@ namespace
 
 bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
 {
-    //Got to work out how this thing converts co-ordinates.!
+    auto x=0;
+    auto y=0;
     
+    /*
+     Due to rounding the known co-ord (the one intersecting) will be slighly off.
+     E.g. 1999 -> 2000, so we correct that here.
+    */
     if (horiz_gridlines)
     {
-        /*
-         Sometimes the 'known' co-ord isn't quite on a gridline due
-         to rounding so we change it slightly. e.g. 1999 -> 2000 
-        */
         if (pos.y % m_tile_side)
         {
             pos.y = wrap_to_tile(pos.y, m_tile_side);
         }
-        
-        auto x = pos.x / m_tile_side;
-        auto y = pos.y / m_tile_side;
-        
-        //Going up
-        if ((pos.angle > 270) || (pos.angle < 90))
-        {
-            y += 1;
-        }
-        
-        y = MAP_SIDE - y;
-        
-        return m_tiles[x+(y*MAP_SIDE)] == 1;
     }
     else
     {
@@ -131,28 +119,37 @@ bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
         {
             pos.x = wrap_to_tile(pos.x, m_tile_side);
         }
-        
-        auto x = pos.x / m_tile_side;
-        auto y = pos.y / m_tile_side;
-        
+    }
+    
+    x = pos.x / m_tile_side;
+    y = pos.y / m_tile_side;
+    
+    if (horiz_gridlines)
+    {
+        //Going up
+        if ((pos.angle > 270) || (pos.angle < 90))
+        {
+            y += 1;
+        }
+    }
+    else
+    {
         //Going right
         if (pos.angle > 180)
         {
             x -= 1;
         }
         
-        //Going up
-        //if ((pos.angle > 270) || (pos.angle < 90))
-        //{
-            y += 1;
-        //}
-        
-        y = MAP_SIDE - y;
-        
-        return m_tiles[x+(y*MAP_SIDE)] == 1;
+        y += 1;
     }
     
-    return false;
+    y = MAP_SIDE - y;
+    return m_tiles[x+(y*MAP_SIDE)] == 1;
+}
+
+float Level::get_scaled_height_factor(double distance)
+{
+    return distance >= m_distance_scale ? 1/(float(distance)/m_distance_scale) : 1;
 }
 
 line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
@@ -205,7 +202,6 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         //From here we need to move 1 grid cell each Y and some X each time
         double change_in_y = m_tile_side;
         auto change_in_x = change_in_y * tan(to_radians(change_grid_angle));
-        
         auto grid_distance = sqrt(pow(change_in_y, 2) + pow(change_in_x, 2));
         
         while (in_map(horiz_pos))
@@ -230,14 +226,25 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         {
             x_to_next_gridline = m_tile_side - x_to_next_gridline;
         }
-        auto y_to_next_gridline = x_to_next_gridline / tan(to_radians(change_grid_angle));
+        
+        auto y_to_next_gridline = 0;
+        //tan(0) = 0, x/0 = inf so avoid that
+        if (change_grid_angle != 0)
+        {
+            y_to_next_gridline = x_to_next_gridline / tan(to_radians(change_grid_angle));
+        }
         
         auto vect_distance = sqrt(pow(y_to_next_gridline, 2) + pow(x_to_next_gridline, 2));
         vert_pos += vect_distance;
         
         //Same distance between each grid line once we've found the 1st one
         auto change_in_x = m_tile_side;
-        auto change_in_y = change_in_x / tan(to_radians(change_grid_angle));
+        
+        auto change_in_y = 0;
+        if (change_grid_angle != 0)
+        {
+            change_in_y = change_in_x / tan(to_radians(change_grid_angle));
+        }
         
         auto grid_distance = sqrt(pow(change_in_y, 2) + pow(change_in_x, 2));
         
@@ -277,8 +284,7 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         
         //Correct perspective
         distance *= cos(to_radians(angle));
-        
-        return line_height(1/(float(distance)/100), vertical_intersect, points_checked);
+        return line_height(get_scaled_height_factor(distance), vertical_intersect, points_checked);
     }
     else
     {
@@ -316,20 +322,12 @@ line_height Level::get_line_height_factor(int x, int view_width)
         distance += distance_step;
         pos += distance_step;
     }
-    
-    /*Problem here being that we don't check on the grid lines, but
-     check whether someting is inside the wall, so lines to the same wall can have
-     different distances if they go further. Then when we correct everything 
-     gets a little worse.*/
-    
-    //Correct for the angle of the ray (get y component of the vector basically)
-    //distance *= cos(to_radians(angle));
 
     /*The the scale of the object falls off with distance. Assuming at 0 distance from
      the player the wall is as high as the screen.*/
     if (am_in_wall)
     {
-        return line_height(1/(float(distance)/50), false, points_checked);
+        return line_height(get_scaled_height_factor(distance), false, points_checked);
     }
     return line_height(points_checked);
 }
