@@ -20,8 +20,23 @@ void Level::apply_movement(const uint8_t* state)
     {
         m_player_pos.angle += m_turn_amount;
     }
-    else if (state[SDL_SCANCODE_UP])
+    else if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_D] ||
+             state[SDL_SCANCODE_S] || state[SDL_SCANCODE_W])
     {
+        auto original_angle = m_player_pos.angle;
+        if (state[SDL_SCANCODE_S])
+        {
+            m_player_pos.angle += 180;
+        }
+        else if (state[SDL_SCANCODE_A])
+        {
+            m_player_pos.angle -= 90;
+        }
+        else if (state[SDL_SCANCODE_D])
+        {
+            m_player_pos.angle += 90;
+        }
+        
         m_player_pos += m_move_amount;
         
         while (!in_map(m_player_pos))
@@ -32,19 +47,8 @@ void Level::apply_movement(const uint8_t* state)
         {
             m_player_pos -= m_move_amount;
         }
-    }
-    else if (state[SDL_SCANCODE_DOWN])
-    {
-        m_player_pos -= m_move_amount;
         
-        while (!in_map(m_player_pos))
-        {
-            m_player_pos += m_move_amount;
-        }
-        while (in_wall(m_player_pos))
-        {
-            m_player_pos += m_move_amount;
-        }
+        m_player_pos.angle = original_angle;
     }
 }
 
