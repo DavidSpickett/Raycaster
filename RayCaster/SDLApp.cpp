@@ -42,9 +42,7 @@ SDLApp::SDLApp(int width, int height):
     }
     
     m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
-    
     m_wall_texture = load_texture("wall.bmp");
-    m_alt_wall_texture = load_texture("wall2.bmp");
 }
 
 SDL_Texture* SDLApp::load_texture(std::string name)
@@ -412,20 +410,28 @@ void SDLApp::draw_line_heights(std::vector<line_height> height_factors)
         // Divide by 2 because we draw above and below the middle
         int line_height = (m_height*height_factors[x].height)/2;
         
+        // Make colours darker with distance (scaling alpha would show the sky through walls)
+        auto colour_val = std::max(float(10), 255*height_factors[x].height);
+        
         if (m_use_texture)
         {
+            if (height_factors[x].vertical_intersect)
+            {
+                //Make Y intersected walls always darker
+                colour_val /= 2;
+            }
+            
+            SDL_SetTextureColorMod(m_wall_texture, colour_val, colour_val, colour_val);
+            
             auto source_rect = SDL_Rect{height_factors[x].texture_offset, 0, 1, 500};
             auto dest_rect = SDL_Rect{x, midscreen-line_height, 1, line_height*2};
             SDL_RenderCopy(m_renderer,
-                           height_factors[x].vertical_intersect ? m_alt_wall_texture : m_wall_texture,
+                           m_wall_texture,
                            &source_rect,
                            &dest_rect);
         }
         else
         {
-            // Make colours darker with distance (scaling alpha would show the sky through walls)
-            auto colour_val = std::max(float(10), 255*height_factors[x].height);
-            
             if (height_factors[x].vertical_intersect)
             {
                 SDL_SetRenderDrawColor(m_renderer, 0, colour_val, 0, 255);

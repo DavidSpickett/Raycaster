@@ -53,7 +53,6 @@ private:
     int m_minimap_cell_size;
     
     SDL_Texture* m_wall_texture;
-    SDL_Texture* m_alt_wall_texture;
     SDL_Renderer* m_renderer;
     SDL_Window* m_window;
 };

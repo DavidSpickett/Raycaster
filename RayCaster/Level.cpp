@@ -318,7 +318,6 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
             distance = vert_distance;
             texture_offset = vert_pos.y % m_tile_side;
             vertical_intersect = true;
-            printf("Texture offset: %d\n", texture_offset);
         }
         
         //Correct perspective
