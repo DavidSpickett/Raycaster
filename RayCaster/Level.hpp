@@ -17,14 +17,18 @@
 
 struct line_height
 {
-    line_height(float height, bool vertical_intersect, std::vector<SDL_Point> points_checked):
-        height(height), vertical_intersect(vertical_intersect), points_checked(points_checked)
+    line_height(float height, bool vertical_intersect, std::vector<SDL_Point> points_checked,
+                int texture_offset):
+        height(height), vertical_intersect(vertical_intersect), points_checked(points_checked),
+        texture_offset(texture_offset)
     {}
     
     line_height(std::vector<SDL_Point> points_checked):
-        height(0), vertical_intersect(false), points_checked(points_checked)
+        height(0), vertical_intersect(false), points_checked(points_checked),
+        texture_offset(-1)
     {}
     
+    int texture_offset;
     float height;
     std::vector<SDL_Point> points_checked;
     bool vertical_intersect;

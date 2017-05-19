@@ -7,6 +7,7 @@
 //
 
 #include <stdexcept>
+#include <string>
 #include "SDLApp.hpp"
 
 namespace
@@ -21,7 +22,7 @@ namespace
 }
 
 SDLApp::SDLApp(int width, int height):
-    m_width(width), m_height(height), m_minimap_cell_size(30)
+    m_width(width), m_height(height), m_minimap_cell_size(30), m_use_texture(true)
 {
     //Initialize SDL
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -41,6 +42,17 @@ SDLApp::SDLApp(int width, int height):
     }
     
     m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
+    
+    m_wall_texture = load_texture("wall.bmp");
+    m_alt_wall_texture = load_texture("wall2.bmp");
+}
+
+SDL_Texture* SDLApp::load_texture(std::string name)
+{
+    auto bmp = SDL_LoadBMP(name.c_str());
+    auto texture = SDL_CreateTextureFromSurface(m_renderer, bmp);
+    SDL_FreeSurface(bmp);
+    return texture;
 }
 
 void SDLApp::draw_minimap(const Level& level, const std::vector<line_height>& heights)
@@ -121,7 +133,7 @@ void SDLApp::draw_minimap(const Level& level, const std::vector<line_height>& he
     player.h = 2;
     SDL_RenderDrawRect(m_renderer, &player);
     
-    SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
+    SDL_SetRenderDrawColor(m_renderer, 255, 255, 0, 255);
     std::for_each(heights.begin(), heights.end(), [=](const line_height& lh)
     {
         std::for_each(lh.points_checked.begin(), lh.points_checked.end(), [=](const SDL_Point& point)
@@ -132,14 +144,6 @@ void SDLApp::draw_minimap(const Level& level, const std::vector<line_height>& he
                                 );
         });
     });
-    
-    /*std::for_each(heights[0].points_checked.begin(), heights[0].points_checked.end(), [=](const SDL_Point& point)
-      {
-          SDL_RenderDrawPoint(m_renderer,
-                              (double(point.x)/level.m_tile_side)*m_minimap_cell_size,
-                              (double(point.y)/level.m_tile_side*m_minimap_cell_size)
-                              );
-      });*/
 }
 
 void SDLApp::draw_vision_cone(const Level& level, LimitedAngle fov)
@@ -396,32 +400,47 @@ void SDLApp::draw_lines_from_points(std::vector<line_height> height_factors)
 void SDLApp::draw_line_heights(std::vector<line_height> height_factors)
 {
     clear();
-    
-    SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
-
     auto midscreen = m_height/2;
+    
+    //Sky
+    SDL_SetRenderDrawColor(m_renderer, 0, 0, 100, 255);
+    SDL_Rect sky_rect{0, 0, m_width, midscreen};
+    SDL_RenderFillRect(m_renderer, &sky_rect);
+    
     for (auto x=0; x != height_factors.size(); ++x)
     {
         // Divide by 2 because we draw above and below the middle
         int line_height = (m_height*height_factors[x].height)/2;
         
-        // Fade out with distance
-        auto alpha = std::max(float(10), 255*height_factors[x].height);
-        
-        if (height_factors[x].vertical_intersect)
+        if (m_use_texture)
         {
-            SDL_SetRenderDrawColor(m_renderer, 0, 255, 0, alpha);
+            auto source_rect = SDL_Rect{height_factors[x].texture_offset, 0, 1, 500};
+            auto dest_rect = SDL_Rect{x, midscreen-line_height, 1, line_height*2};
+            SDL_RenderCopy(m_renderer,
+                           height_factors[x].vertical_intersect ? m_alt_wall_texture : m_wall_texture,
+                           &source_rect,
+                           &dest_rect);
         }
         else
         {
-            SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, alpha);
-        }
-        
-        if (line_height)
-        {
-            SDL_RenderDrawLine(m_renderer,
-                               x, midscreen-line_height,
-                               x, midscreen+line_height);
+            // Make colours darker with distance (scaling alpha would show the sky through walls)
+            auto colour_val = std::max(float(10), 255*height_factors[x].height);
+            
+            if (height_factors[x].vertical_intersect)
+            {
+                SDL_SetRenderDrawColor(m_renderer, 0, colour_val, 0, 255);
+            }
+            else
+            {
+                SDL_SetRenderDrawColor(m_renderer, colour_val, 0, 0, 255);
+            }
+            
+            if (line_height)
+            {
+                SDL_RenderDrawLine(m_renderer,
+                                   x, midscreen-line_height,
+                                   x, midscreen+line_height);
+            }
         }
     }
 }

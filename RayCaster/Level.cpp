@@ -304,21 +304,29 @@ line_height Level::get_line_height_factor_using_gridlines(int x, int view_width)
         }
         
         auto distance = 0;
-        bool vertical_intersect = false;
+        auto vertical_intersect = false;
+        auto texture_offset = -1;
+        
         if (horiz_distance < vert_distance)
         {
             //Use horizontal projection distance
             distance = horiz_distance;
+            texture_offset = horiz_pos.x % m_tile_side;
         }
         else
         {
             distance = vert_distance;
+            texture_offset = vert_pos.y % m_tile_side;
             vertical_intersect = true;
+            printf("Texture offset: %d\n", texture_offset);
         }
         
         //Correct perspective
         distance *= cos(to_radians(angle_from_player_heading));
-        return line_height(get_scaled_height_factor(distance), vertical_intersect, points_checked);
+        return line_height(get_scaled_height_factor(distance),
+                           vertical_intersect,
+                           points_checked,
+                           texture_offset);
     }
     else
     {
@@ -361,7 +369,10 @@ line_height Level::get_line_height_factor(int x, int view_width)
      the player the wall is as high as the screen.*/
     if (am_in_wall)
     {
-        return line_height(get_scaled_height_factor(distance), false, points_checked);
+        return line_height(get_scaled_height_factor(distance),
+                           false,
+                           points_checked,
+                           0); //TODO: calculate a rough offset?
     }
     return line_height(points_checked);
 }

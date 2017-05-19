@@ -4,9 +4,9 @@
 
 int main(int argc, char* argv[])
 {
-    //do some of this stuff!
     /*
     TODO:
+     - allow multiple of WASD keys to be held down so you can move diagonally.
      
      - To do lighting, trace rays from each point hit on the wall, out to each lights.
 
@@ -34,7 +34,6 @@ int main(int argc, char* argv[])
     
     SDLApp app(win_width, win_height);
     Level level;
-    
     
     SDL_Event event;
     auto run = true;
@@ -89,22 +88,23 @@ int main(int argc, char* argv[])
                             printf("Using stepped projection.\n");
                         }
                     }
+                    else if (state[SDL_SCANCODE_RETURN])
+                    {
+                        app.m_use_texture = !app.m_use_texture;
+                        if (app.m_use_texture)
+                        {
+                            printf("Texture enabled\n");
+                        }
+                        else
+                        {
+                            printf("Texture disabled\n");
+                        }
+                    }
                 }
             }
         }
         
         level.apply_movement(state);
-        
-        /*
-        TODO:
-        When you look into the distance and two shapes overlap we should
-        know how to draw an edge to differentiate them.
-         This would also break the shape and make the size difference more
-         obvious.
-        
-        Perpsecitve correct the rays so that you don't get corners in the middle
-        of a wall close up.
-        */
         
         auto heights = level.get_line_heights(win_width);
         switch (video_mode)

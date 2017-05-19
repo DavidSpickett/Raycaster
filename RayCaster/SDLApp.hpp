@@ -27,6 +27,7 @@ public:
     {
         if (m_window != NULL)
         {
+            SDL_DestroyTexture(m_wall_texture);
             SDL_DestroyRenderer(m_renderer);
             SDL_DestroyWindow(m_window);
             SDL_Quit();
@@ -38,8 +39,11 @@ public:
     void draw_line_heights(std::vector<line_height> height_factors);
     void draw_minimap(const Level& level, const std::vector<line_height>& heights);
     void draw_to_screen();
+    
+    bool m_use_texture;
 
 private:
+    SDL_Texture* load_texture(std::string name);
     void draw_vision_cone(const Level& level, LimitedAngle fov);
     
     void clear();
@@ -48,6 +52,8 @@ private:
     int m_height;
     int m_minimap_cell_size;
     
+    SDL_Texture* m_wall_texture;
+    SDL_Texture* m_alt_wall_texture;
     SDL_Renderer* m_renderer;
     SDL_Window* m_window;
 };
