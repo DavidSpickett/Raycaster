@@ -129,9 +129,9 @@ bool Level::in_wall(Position pos)
     pos.y /= m_tile_side;
     
     //Our map data is laid out to look like a normal map but our y co-ord is inverted.
-    pos.y = MAP_SIDE - pos.y - 1;
+    pos.y = MAP_HEIGHT - pos.y - 1;
     
-    return m_tiles[pos.x+(pos.y*MAP_SIDE)] == 1;
+    return m_tiles[pos.x+(pos.y*MAP_WIDTH)] == 1;
 }
 
 bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
@@ -180,8 +180,8 @@ bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
         y += 1;
     }
     
-    y = MAP_SIDE - y;
-    return m_tiles[x+(y*MAP_SIDE)] == 1;
+    y = MAP_HEIGHT - y;
+    return m_tiles[x+(y*MAP_WIDTH)] == 1;
 }
 
 float Level::get_scaled_height_factor(double distance)

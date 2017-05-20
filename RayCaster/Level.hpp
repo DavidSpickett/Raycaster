@@ -34,17 +34,18 @@ struct line_height
     bool vertical_intersect;
 };
 
-const auto MAP_SIDE = 6;
+const auto MAP_HEIGHT = 6;
+const auto MAP_WIDTH = 7;
 
 struct Level
 {
     Level():
-        m_tiles{0,0,0,0,0,0,
-                0,1,1,1,0,0,
-                0,0,0,0,0,0,
-                0,1,0,0,0,0,
-                1,0,0,0,0,1,
-                0,1,1,0,1,1},
+        m_tiles{0,0,0,0,0,0,0,
+                0,1,1,1,0,0,1,
+                0,0,0,0,0,0,0,
+                0,1,0,0,0,0,1,
+                1,0,0,0,0,1,0,
+                0,1,1,0,1,1,0},
         m_tile_side(500),
         m_player_pos(2000, 1500, 0),
         m_player_fov(60),
@@ -53,8 +54,8 @@ struct Level
         m_distance_scale(100),
         m_gridline_projection(true)
     {
-        m_map_width = MAP_SIDE*m_tile_side;
-        m_map_height = MAP_SIDE*m_tile_side;
+        m_map_width = MAP_WIDTH*m_tile_side;
+        m_map_height = MAP_HEIGHT*m_tile_side;
     }
     
     std::vector<line_height> get_line_heights(int view_width);
@@ -66,7 +67,7 @@ struct Level
     int m_map_height;
     LimitedAngle m_player_fov;
     
-    std::array<int, MAP_SIDE*MAP_SIDE> m_tiles;
+    std::array<int, MAP_WIDTH*MAP_HEIGHT> m_tiles;
     int m_tile_side;
     bool m_gridline_projection;
     

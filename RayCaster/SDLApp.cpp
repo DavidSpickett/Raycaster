@@ -56,11 +56,11 @@ SDL_Texture* SDLApp::load_texture(std::string name)
 void SDLApp::draw_minimap(const Level& level, const std::vector<line_height>& heights)
 {
     //Walls and floor
-    for (auto x=0; x != MAP_SIDE; ++x)
+    for (auto x=0; x != MAP_WIDTH; ++x)
     {
-        for (auto y=0; y != MAP_SIDE; ++y)
+        for (auto y=0; y != MAP_HEIGHT; ++y)
         {
-            if (level.m_tiles[x+(y*MAP_SIDE)])
+            if (level.m_tiles[x+(y*MAP_WIDTH)])
             {
                 SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
             }
@@ -81,9 +81,9 @@ void SDLApp::draw_minimap(const Level& level, const std::vector<line_height>& he
     
     //Gridlines
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 255, 255);
-    for (auto x=0; x != MAP_SIDE; ++x)
+    for (auto x=0; x != MAP_WIDTH; ++x)
     {
-        for (auto y=0; y != MAP_SIDE; ++y)
+        for (auto y=0; y != MAP_HEIGHT; ++y)
         {
             std::array<SDL_Point, 3> points;
             
@@ -106,14 +106,14 @@ void SDLApp::draw_minimap(const Level& level, const std::vector<line_height>& he
     //Right/bottom side of minimap
     std::array<SDL_Point, 3> points;
     
-    points[0].x = m_minimap_cell_size*MAP_SIDE;
+    points[0].x = m_minimap_cell_size*MAP_WIDTH;
     points[0].y = 0;
     
-    points[1].x = m_minimap_cell_size*MAP_SIDE;
-    points[1].y = m_minimap_cell_size*MAP_SIDE;
+    points[1].x = m_minimap_cell_size*MAP_WIDTH;
+    points[1].y = m_minimap_cell_size*MAP_HEIGHT;
     
     points[2].x = 0;
-    points[2].y = m_minimap_cell_size*MAP_SIDE;
+    points[2].y = m_minimap_cell_size*MAP_HEIGHT;
     
     SDL_RenderDrawLines(m_renderer, &points[0], points.size());
     
