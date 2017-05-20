@@ -6,12 +6,11 @@ int main(int argc, char* argv[])
 {
     /*
     TODO:
+     - would moving the horizon line up and down give us the ability to 'look' up and down?
+     
      - allow multiple of WASD keys to be held down so you can move diagonally.
      
      - To do lighting, trace rays from each point hit on the wall, out to each lights.
-
-     - To do textures, work out the x co-ord of the intersection into the cell side and use that
-     as your X within the cell side texture.
      
      - You can walk through the corners of two wall cells. Fix.
      

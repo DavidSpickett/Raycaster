@@ -9,6 +9,7 @@
 #include "Level.hpp"
 #include <math.h>
 #include <limits>
+#include <map>
 
 void Level::apply_movement(const uint8_t* state)
 {
@@ -16,39 +17,48 @@ void Level::apply_movement(const uint8_t* state)
     {
         m_player_pos.angle -= m_turn_amount;
     }
-    else if (state[SDL_SCANCODE_RIGHT])
+    if (state[SDL_SCANCODE_RIGHT])
     {
         m_player_pos.angle += m_turn_amount;
     }
-    else if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_D] ||
-             state[SDL_SCANCODE_S] || state[SDL_SCANCODE_W])
+    
+    auto fwd   = state[SDL_SCANCODE_W];
+    auto bkwd  = state[SDL_SCANCODE_S];
+    auto left  = state[SDL_SCANCODE_A];
+    auto right = state[SDL_SCANCODE_D];
+    if (fwd || bkwd || left || right)
     {
-        auto original_angle = m_player_pos.angle;
-        if (state[SDL_SCANCODE_S])
-        {
-            m_player_pos.angle += 180;
-        }
-        else if (state[SDL_SCANCODE_A])
-        {
-            m_player_pos.angle -= 90;
-        }
-        else if (state[SDL_SCANCODE_D])
-        {
-            m_player_pos.angle += 90;
-        }
+        const std::map<uint8_t, double> angles{
+            {0b0110, -135},
+            {0b0010,  -90},
+            {0b1010,  -45},
+            {0b1000,    0},
+            {0b1001,   45},
+            {0b0001,   90},
+            {0b0101,  135},
+            {0b0100,  180},
+        };
         
-        m_player_pos += m_move_amount;
+        auto dir_val = (fwd << 3) | (bkwd << 2) | (left << 1) | right;
+        auto angle_change = angles.find(dir_val);
         
-        while (!in_map(m_player_pos))
+        if (angle_change != angles.end())
         {
-            m_player_pos -= m_move_amount;
+            m_player_pos.angle += angle_change->second;
+            
+            m_player_pos += m_move_amount;
+            
+            while (!in_map(m_player_pos))
+            {
+                m_player_pos -= m_move_amount;
+            }
+            while (in_wall(m_player_pos))
+            {
+                m_player_pos -= m_move_amount;
+            }
+            
+            m_player_pos.angle -= angle_change->second;
         }
-        while (in_wall(m_player_pos))
-        {
-            m_player_pos -= m_move_amount;
-        }
-        
-        m_player_pos.angle = original_angle;
     }
 }
 

@@ -131,7 +131,7 @@ void SDLApp::draw_minimap(const Level& level, const std::vector<line_height>& he
     player.h = 2;
     SDL_RenderDrawRect(m_renderer, &player);
     
-    SDL_SetRenderDrawColor(m_renderer, 255, 255, 0, 255);
+    SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
     std::for_each(heights.begin(), heights.end(), [=](const line_height& lh)
     {
         std::for_each(lh.points_checked.begin(), lh.points_checked.end(), [=](const SDL_Point& point)
