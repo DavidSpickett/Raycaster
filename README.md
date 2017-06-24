@@ -25,3 +25,9 @@ Controls
 | enter         | Enable/disable textures (some video modes not effected) |
 | [             | Increase field of view |
 | ]             | Decrease field of view | 
+
+Links
+-----
+- [Catch unit test framework](https://github.com/philsquared/Catch)
+- [Basic maths tutorial](https://www.mathsisfun.com/algebra/trigonometry.html)
+- [Ray casting tutorial](http://lodev.org/cgtutor/raycasting.html#The_Basic_Idea_)
