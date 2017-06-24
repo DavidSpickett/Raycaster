@@ -8,16 +8,12 @@ int main(int argc, char* argv[])
     TODO:
      - would moving the horizon line up and down give us the ability to 'look' up and down?
      
-     - allow multiple of WASD keys to be held down so you can move diagonally.
-     
      - To do lighting, trace rays from each point hit on the wall, out to each lights.
      
-     - You can walk through the corners of two wall cells. Fix.
+     - You can walk through the corners of two wall cells.
      
      - You cannot scrub along a wall if you're facing into it. At least allow one dir of 
      movement there.
-     
-     - Allow a map that is not square. In other words have two map side values.
      
      - Somehow we get vertical intersections when looking off of the right side of the map.
      (somehow it's tracing the gridline down?)

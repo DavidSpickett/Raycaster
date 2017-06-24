@@ -10,6 +10,7 @@
 #include <math.h>
 #include <limits>
 #include <map>
+#include <cstdlib>
 
 void Level::apply_movement(const uint8_t* state)
 {
@@ -26,39 +27,38 @@ void Level::apply_movement(const uint8_t* state)
     auto bkwd  = state[SDL_SCANCODE_S];
     auto left  = state[SDL_SCANCODE_A];
     auto right = state[SDL_SCANCODE_D];
-    if (fwd || bkwd || left || right)
+    
+    const std::map<uint8_t, double> angles{
+        {0b0110, -135},
+        {0b0010,  -90},
+        {0b1010,  -45},
+        {0b1000,    0},
+        {0b1001,   45},
+        {0b0001,   90},
+        {0b0101,  135},
+        {0b0100,  180},
+    };
+    
+    auto dir_val = (fwd << 3) | (bkwd << 2) | (left << 1) | right;
+    auto angle_change = angles.find(dir_val);
+    
+    //Not finding it means it's an invalid combo such as left+right
+    if (angle_change != angles.end())
     {
-        const std::map<uint8_t, double> angles{
-            {0b0110, -135},
-            {0b0010,  -90},
-            {0b1010,  -45},
-            {0b1000,    0},
-            {0b1001,   45},
-            {0b0001,   90},
-            {0b0101,  135},
-            {0b0100,  180},
-        };
+        m_player_pos.angle += angle_change->second;
         
-        auto dir_val = (fwd << 3) | (bkwd << 2) | (left << 1) | right;
-        auto angle_change = angles.find(dir_val);
+        m_player_pos += m_move_amount;
         
-        if (angle_change != angles.end())
+        while (!in_map(m_player_pos))
         {
-            m_player_pos.angle += angle_change->second;
-            
-            m_player_pos += m_move_amount;
-            
-            while (!in_map(m_player_pos))
-            {
-                m_player_pos -= m_move_amount;
-            }
-            while (in_wall(m_player_pos))
-            {
-                m_player_pos -= m_move_amount;
-            }
-            
-            m_player_pos.angle -= angle_change->second;
+            m_player_pos -= m_move_amount;
         }
+        while (in_wall(m_player_pos))
+        {
+            m_player_pos -= m_move_amount;
+        }
+        
+        m_player_pos.angle -= angle_change->second;
     }
 }
 
@@ -84,36 +84,19 @@ namespace
 {
     float point_distance(Position p1, Position p2)
     {
-        auto x_change = p2.x - p1.x;
-        //Just want magnitude
-        if (x_change < 0)
-        {
-            x_change *= -1;
-        }
-        auto y_change = p2.y - p1.y;
-        if (y_change < 0)
-        {
-            y_change *= -1;
-        }
-        
+        auto x_change = std::abs(p2.x - p1.x);
+        auto y_change = std::abs(p2.y - p1.y);
         return sqrt((pow(x_change, 2) + pow(y_change, 2)));
     }
 
     int wrap_to_tile(int pos, int tile_side)
     {
         auto remainder = pos % tile_side;
-        auto min = pos - remainder;
-        auto half_way = min+(tile_side/2);
-        
-        if (pos >= half_way)
+        pos -= remainder;
+        if (remainder >= tile_side/2)
         {
-            pos = pos - remainder + tile_side;
+            pos += tile_side;
         }
-        else
-        {
-            pos -= remainder;
-        }
-        
         return pos;
     }
 }
@@ -128,7 +111,7 @@ bool Level::in_wall(Position pos)
     pos.x /= m_tile_side;
     pos.y /= m_tile_side;
     
-    //Our map data is laid out to look like a normal map but our y co-ord is inverted.
+    //Our map data is laid out to look like a normal map so our Y is inverted compared to SDL
     pos.y = MAP_HEIGHT - pos.y - 1;
     
     return m_tiles[pos.x+(pos.y*MAP_WIDTH)] == 1;
@@ -145,17 +128,11 @@ bool Level::grid_in_wall(Position pos, bool horiz_gridlines)
     */
     if (horiz_gridlines)
     {
-        if (pos.y % m_tile_side)
-        {
-            pos.y = wrap_to_tile(pos.y, m_tile_side);
-        }
+        pos.y = wrap_to_tile(pos.y, m_tile_side);
     }
     else
     {
-        if (pos.x % m_tile_side)
-        {
-            pos.x = wrap_to_tile(pos.x, m_tile_side);
-        }
+        pos.x = wrap_to_tile(pos.x, m_tile_side);
     }
     
     x = pos.x / m_tile_side;

@@ -117,28 +117,29 @@ struct Position
         return ret;
     }
     
-    //These can probably be simplified.
     Position& operator+=(int distance)
     {
-        auto new_pos = *this + distance;
-        x = new_pos.x;
-        y = new_pos.y;
-        angle = new_pos.angle;
+        *this = *this + distance;
         return *this;
     }
     
     Position& operator-=(int distance)
     {
-        auto new_pos = *this - distance;
-        x = new_pos.x;
-        y = new_pos.y;
-        angle = new_pos.angle;
+        *this = *this - distance;
+        return *this;
+    }
+    
+    Position& operator=(const Position& rhs)
+    {
+        x = rhs.x;
+        y = rhs.y;
+        angle = rhs.angle;
         return *this;
     }
     
     int x;
     int y;
-    LimitedAngle angle; //0 means facing North/forward
+    LimitedAngle angle; //0 means facing North
 };
 
 #endif /* Position_hpp */
